@@ -1,0 +1,616 @@
+{
+	"id": "645b9718-d8b0-4b44-a968-28b1c57b9cae",
+	"name": "Book Marketplace API",
+	"timestamp": "2025-08-22T21:49:30.830Z",
+	"collection_id": "47832640-ced2d59d-475a-40d6-a465-7ba28433d35e",
+	"folder_id": 0,
+	"environment_id": "0",
+	"totalPass": 0,
+	"delay": "1000",
+	"persist": true,
+	"status": "finished",
+	"startedAt": "2025-08-22T21:48:57.202Z",
+	"totalFail": 0,
+	"results": [
+		{
+			"id": "86688207-5235-41ff-9abc-8004a5fbfcec",
+			"name": "Register Buyer",
+			"url": "http://localhost:5001/api/auth/register",
+			"time": 93,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				93
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "ac604c1c-1850-426f-a4d2-67f6f5baae3a",
+			"name": "Register Customer",
+			"url": "http://localhost:5001/api/auth/register",
+			"time": 70,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				70
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "c3bb4be3-32c1-44a7-83b0-c841f1b92e8a",
+			"name": "Login Buyer",
+			"url": "http://localhost:5001/api/auth/login",
+			"time": 418,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				418
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "6edecaa3-ebcc-47cb-b6ec-70288779ab6e",
+			"name": "Login Customer",
+			"url": "http://localhost:5001/api/auth/login",
+			"time": 374,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				374
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "d4e01107-b1c5-44cd-b87e-dd4e6577873d",
+			"name": "Get My Profile (Buyer)",
+			"url": "http://localhost:5001/api/auth/me",
+			"time": 78,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				78
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "d993db12-5168-4157-b4a1-979e4f258397",
+			"name": "Update Profile",
+			"url": "http://localhost:5001/api/auth/profile",
+			"time": 145,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				145
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "ad0560ff-7edc-403b-b6e6-b54128bdbd69",
+			"name": "Create Book (Buyer)",
+			"url": "http://localhost:5001/api/books",
+			"time": 220,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				220
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "25fe814b-9aa2-4a7a-80c2-19bf2af190f4",
+			"name": "Create Another Book",
+			"url": "http://localhost:5001/api/books",
+			"time": 208,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				208
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "33c1ca8e-9b66-454c-8c56-b3f9a3c1ad23",
+			"name": "Get All Books",
+			"url": "http://localhost:5001/api/books",
+			"time": 255,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				255
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "d127e37f-bce6-46bf-959c-490a9b07db19",
+			"name": "Search Books",
+			"url": "http://localhost:5001/api/books?search=Hugo&quality=good&minPrice=20&maxPrice=50",
+			"time": 201,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				201
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "1b69031b-a574-4f72-ad53-7e6c2d10a643",
+			"name": "Get Single Book",
+			"url": "http://localhost:5001/api/books/68a8e5d175cfb36f0d3aeb25",
+			"time": 199,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				199
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "9e802203-771c-4221-be0f-9e01e0156fbf",
+			"name": "Update Book",
+			"url": "http://localhost:5001/api/books/68a8e5d175cfb36f0d3aeb25",
+			"time": 264,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				264
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "348701eb-3756-4424-8b86-f03aae28f02c",
+			"name": "Get My Listings (Buyer)",
+			"url": "http://localhost:5001/api/books/my/listings",
+			"time": 203,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				203
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "7df17ea1-5064-49a0-95eb-ce3680683559",
+			"name": "Create Order (Customer)",
+			"url": "http://localhost:5001/api/orders",
+			"time": 412,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				412
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "d403623d-0414-42d9-9707-6b0ad9679738",
+			"name": "Create Delivery Order",
+			"url": "http://localhost:5001/api/orders",
+			"time": 413,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				413
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "be604c1f-50b4-4346-9f39-bdba979278ce",
+			"name": "Get Customer Orders",
+			"url": "http://localhost:5001/api/orders/my/customer",
+			"time": 277,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				277
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "f7faf831-3219-4c0b-8e90-c6cd7d72efe8",
+			"name": "Get Buyer Orders",
+			"url": "http://localhost:5001/api/orders/my/buyer",
+			"time": 275,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				275
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "de60b553-3142-4c8d-81b1-e1ce8608712f",
+			"name": "Confirm Order (Buyer)",
+			"url": "http://localhost:5001/api/orders/68a8e5da75cfb36f0d3aeb3f/status",
+			"time": 276,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				276
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "5dfc0d3f-911e-475e-a2f6-b2805477ecb7",
+			"name": "Mark Ready (Buyer)",
+			"url": "http://localhost:5001/api/orders/68a8e5da75cfb36f0d3aeb3f/status",
+			"time": 207,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				207
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "7471338d-6506-4e32-92e5-abe938033ea0",
+			"name": "Complete Order (Customer)",
+			"url": "http://localhost:5001/api/orders/68a8e5da75cfb36f0d3aeb3f/status",
+			"time": 206,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				206
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "63cd029f-46c8-4203-ac73-679ab2b25cd3",
+			"name": "Generate Buyer Export",
+			"url": "http://localhost:5001/api/geojson/generate",
+			"time": 292,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				292
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "e842ebd8-7554-46f4-8ac6-3c91f28a0068",
+			"name": "Generate Customer Export",
+			"url": "http://localhost:5001/api/geojson/generate",
+			"time": 210,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				210
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "90d5bd01-5160-47b0-aa99-9bd104c1627e",
+			"name": "Get My Exports",
+			"url": "http://localhost:5001/api/geojson/my-exports",
+			"time": 211,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				211
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "58b674e3-6848-49b0-a76d-c330f19ab40f",
+			"name": "Preview Export",
+			"url": "http://localhost:5001/api/geojson/preview/68a8e5e375cfb36f0d3aeb6f",
+			"time": 149,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				149
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "b11a9de0-a6a7-44cb-97b2-0618d03d99aa",
+			"name": "Download Export",
+			"url": "http://localhost:5001/api/geojson/download/68a8e5e375cfb36f0d3aeb6f",
+			"time": 215,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				215
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "bd71bb95-7880-4376-b9da-37fd7016cfd7",
+			"name": "Delete Export",
+			"url": "http://localhost:5001/api/geojson/68a8e5e375cfb36f0d3aeb6f",
+			"time": 215,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				215
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "ec0de75d-c3c7-46a4-aa59-e4674d2a9fbc",
+			"name": "Health Check",
+			"url": "http://localhost:5001/api/health",
+			"time": 4,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				4
+			],
+			"allTests": [
+				{}
+			]
+		}
+	],
+	"count": 1,
+	"totalTime": 6090,
+	"collection": {
+		"requests": [
+			{
+				"id": "86688207-5235-41ff-9abc-8004a5fbfcec",
+				"method": "POST"
+			},
+			{
+				"id": "ac604c1c-1850-426f-a4d2-67f6f5baae3a",
+				"method": "POST"
+			},
+			{
+				"id": "c3bb4be3-32c1-44a7-83b0-c841f1b92e8a",
+				"method": "POST"
+			},
+			{
+				"id": "6edecaa3-ebcc-47cb-b6ec-70288779ab6e",
+				"method": "POST"
+			},
+			{
+				"id": "d4e01107-b1c5-44cd-b87e-dd4e6577873d",
+				"method": "GET"
+			},
+			{
+				"id": "d993db12-5168-4157-b4a1-979e4f258397",
+				"method": "PUT"
+			},
+			{
+				"id": "ad0560ff-7edc-403b-b6e6-b54128bdbd69",
+				"method": "POST"
+			},
+			{
+				"id": "25fe814b-9aa2-4a7a-80c2-19bf2af190f4",
+				"method": "POST"
+			},
+			{
+				"id": "33c1ca8e-9b66-454c-8c56-b3f9a3c1ad23",
+				"method": "GET"
+			},
+			{
+				"id": "d127e37f-bce6-46bf-959c-490a9b07db19",
+				"method": "GET"
+			},
+			{
+				"id": "1b69031b-a574-4f72-ad53-7e6c2d10a643",
+				"method": "GET"
+			},
+			{
+				"id": "9e802203-771c-4221-be0f-9e01e0156fbf",
+				"method": "PUT"
+			},
+			{
+				"id": "348701eb-3756-4424-8b86-f03aae28f02c",
+				"method": "GET"
+			},
+			{
+				"id": "7df17ea1-5064-49a0-95eb-ce3680683559",
+				"method": "POST"
+			},
+			{
+				"id": "d403623d-0414-42d9-9707-6b0ad9679738",
+				"method": "POST"
+			},
+			{
+				"id": "be604c1f-50b4-4346-9f39-bdba979278ce",
+				"method": "GET"
+			},
+			{
+				"id": "f7faf831-3219-4c0b-8e90-c6cd7d72efe8",
+				"method": "GET"
+			},
+			{
+				"id": "de60b553-3142-4c8d-81b1-e1ce8608712f",
+				"method": "PUT"
+			},
+			{
+				"id": "5dfc0d3f-911e-475e-a2f6-b2805477ecb7",
+				"method": "PUT"
+			},
+			{
+				"id": "7471338d-6506-4e32-92e5-abe938033ea0",
+				"method": "PUT"
+			},
+			{
+				"id": "63cd029f-46c8-4203-ac73-679ab2b25cd3",
+				"method": "POST"
+			},
+			{
+				"id": "e842ebd8-7554-46f4-8ac6-3c91f28a0068",
+				"method": "POST"
+			},
+			{
+				"id": "90d5bd01-5160-47b0-aa99-9bd104c1627e",
+				"method": "GET"
+			},
+			{
+				"id": "58b674e3-6848-49b0-a76d-c330f19ab40f",
+				"method": "GET"
+			},
+			{
+				"id": "b11a9de0-a6a7-44cb-97b2-0618d03d99aa",
+				"method": "GET"
+			},
+			{
+				"id": "bd71bb95-7880-4376-b9da-37fd7016cfd7",
+				"method": "DELETE"
+			},
+			{
+				"id": "ec0de75d-c3c7-46a4-aa59-e4674d2a9fbc",
+				"method": "GET"
+			}
+		]
+	}
+}

@@ -1,0 +1,675 @@
+{
+	"info": {
+		"name": "📚 Book Marketplace - Complete API Test",
+		"description": "Complete automated testing for Book Marketplace API with proper workflow",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "01. 🔍 Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:5001/api/health"
+			}
+		},
+		{
+			"name": "02. 👤 Register Buyer",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const timestamp = Date.now();",
+							"pm.globals.set('timestamp', timestamp);",
+							"pm.globals.set('buyerEmail', `buyer${timestamp}@test.com`);",
+							"console.log('🔑 Generated buyer email:', pm.globals.get('buyerEmail'));"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Buyer registration successful', function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"if (pm.response.code === 201) {",
+							"    console.log('✅ Buyer registered successfully');",
+							"} else {",
+							"    console.log('❌ Buyer registration failed:', pm.response.text());",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"{{buyerEmail}}\",\n  \"password\": \"password123\",\n  \"userType\": \"buyer\",\n  \"phone\": \"+212 6 12 34 56 78\",\n  \"location\": {\n    \"name\": \"Librairie Test Casablanca\",\n    \"coordinates\": {\n      \"latitude\": 33.5731,\n      \"longitude\": -7.5898\n    },\n    \"address\": \"Boulevard Mohammed V, Casablanca\"\n  },\n  \"profile\": {\n    \"firstName\": \"Ahmed\",\n    \"lastName\": \"Libraire\",\n    \"bio\": \"Spécialiste en livres académiques\"\n  }\n}"
+				},
+				"url": "http://localhost:5001/api/auth/register"
+			}
+		},
+		{
+			"name": "03. 🔐 Login Buyer",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Buyer login successful', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"if (pm.response.code === 200) {",
+							"    const response = pm.response.json();",
+							"    pm.globals.set('buyerToken', response.token);",
+							"    pm.globals.set('buyerId', response.user.id);",
+							"    console.log('✅ Buyer token saved successfully');",
+							"    console.log('🔑 Token preview:', response.token.substring(0, 30) + '...');",
+							"} else {",
+							"    console.log('❌ Buyer login failed:', pm.response.text());",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"{{buyerEmail}}\",\n  \"password\": \"password123\"\n}"
+				},
+				"url": "http://localhost:5001/api/auth/login"
+			}
+		},
+		{
+			"name": "04. 👤 Get Buyer Profile",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Profile retrieved successfully', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"if (pm.response.code === 200) {",
+							"    console.log('✅ Buyer profile retrieved successfully');",
+							"} else {",
+							"    console.log('❌ Profile retrieval failed:', pm.response.text());",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{buyerToken}}"
+					}
+				],
+				"url": "http://localhost:5001/api/auth/me"
+			}
+		},
+		{
+			"name": "05. 📖 Create Book",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Book created successfully', function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"if (pm.response.code === 201) {",
+							"    const response = pm.response.json();",
+							"    pm.globals.set('bookId', response.book._id);",
+							"    console.log('✅ Book created successfully');",
+							"    console.log('📚 Book ID:', response.book._id);",
+							"    console.log('📖 Title:', response.book.title);",
+							"    console.log('💰 Price:', response.book.price + '€');",
+							"} else {",
+							"    console.log('❌ Book creation failed:', pm.response.text());",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{buyerToken}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"title\": \"Le Petit Prince\",\n  \"author\": \"Antoine de Saint-Exupéry\",\n  \"quality\": \"excellent\",\n  \"quantity\": 1,\n  \"price\": 25.00,\n  \"description\": \"Conte philosophique intemporel en excellent état\",\n  \"category\": \"Littérature\",\n  \"isbn\": \"978-2-07-040570-1\",\n  \"condition\": {\n    \"hasWriting\": false,\n    \"hasHighlighting\": false,\n    \"hasDamage\": false\n  }\n}"
+				},
+				"url": "http://localhost:5001/api/books"
+			}
+		},
+		{
+			"name": "06. 📚 Get All Books",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Books retrieved successfully', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"if (pm.response.code === 200) {",
+							"    const response = pm.response.json();",
+							"    console.log('✅ Found', response.books.length, 'books in marketplace');",
+							"} else {",
+							"    console.log('❌ Books retrieval failed:', pm.response.text());",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:5001/api/books"
+			}
+		},
+		{
+			"name": "07. 👥 Register Customer",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const timestamp = pm.globals.get('timestamp');",
+							"pm.globals.set('customerEmail', `customer${timestamp}@test.com`);",
+							"console.log('🔑 Generated customer email:', pm.globals.get('customerEmail'));"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Customer registration successful', function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"if (pm.response.code === 201) {",
+							"    console.log('✅ Customer registered successfully');",
+							"} else {",
+							"    console.log('❌ Customer registration failed:', pm.response.text());",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"password123\",\n  \"userType\": \"customer\",\n  \"phone\": \"+212 6 87 65 43 21\",\n  \"location\": {\n    \"name\": \"Quartier Maarif\",\n    \"coordinates\": {\n      \"latitude\": 33.5731,\n      \"longitude\": -7.5898\n    },\n    \"address\": \"Rue Abdelkrim Diouri, Maarif, Casablanca\"\n  },\n  \"profile\": {\n    \"firstName\": \"Fatima\",\n    \"lastName\": \"Cliente\",\n    \"bio\": \"Étudiante en littérature française\"\n  }\n}"
+				},
+				"url": "http://localhost:5001/api/auth/register"
+			}
+		},
+		{
+			"name": "08. 🔐 Login Customer",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Customer login successful', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"if (pm.response.code === 200) {",
+							"    const response = pm.response.json();",
+							"    pm.globals.set('customerToken', response.token);",
+							"    pm.globals.set('customerId', response.user.id);",
+							"    console.log('✅ Customer token saved successfully');",
+							"} else {",
+							"    console.log('❌ Customer login failed:', pm.response.text());",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"password123\"\n}"
+				},
+				"url": "http://localhost:5001/api/auth/login"
+			}
+		},
+		{
+			"name": "09. 🛒 Create Order",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Order created successfully', function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"if (pm.response.code === 201) {",
+							"    const response = pm.response.json();",
+							"    pm.globals.set('orderId', response.order._id);",
+							"    console.log('✅ Order created successfully');",
+							"    console.log('🛒 Order ID:', response.order._id);",
+							"    console.log('📦 Status:', response.order.status);",
+							"    console.log('💵 Total:', response.order.totalPrice + '€');",
+							"} else {",
+							"    console.log('❌ Order creation failed:', pm.response.text());",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{customerToken}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"bookId\": \"{{bookId}}\",\n  \"quantity\": 1,\n  \"orderType\": \"pickup\",\n  \"customerNotes\": \"Je peux venir récupérer le livre demain après-midi\"\n}"
+				},
+				"url": "http://localhost:5001/api/orders"
+			}
+		},
+		{
+			"name": "10. ✅ Confirm Order (Buyer)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Order confirmed successfully', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"if (pm.response.code === 200) {",
+							"    const response = pm.response.json();",
+							"    console.log('✅ Order confirmed by buyer');",
+							"    console.log('📦 New Status:', response.order.status);",
+							"} else {",
+							"    console.log('❌ Order confirmation failed:', pm.response.text());",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{buyerToken}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"status\": \"confirmed\",\n  \"notes\": \"Commande confirmée, livre disponible\"\n}"
+				},
+				"url": "http://localhost:5001/api/orders/{{orderId}}/status"
+			}
+		},
+		{
+			"name": "11. 🔄 Mark Preparing (Buyer)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Order marked as preparing', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"if (pm.response.code === 200) {",
+							"    console.log('✅ Order marked as preparing');",
+							"} else {",
+							"    console.log('❌ Status update failed:', pm.response.text());",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{buyerToken}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"status\": \"preparing\",\n  \"notes\": \"Préparation du livre en cours\"\n}"
+				},
+				"url": "http://localhost:5001/api/orders/{{orderId}}/status"
+			}
+		},
+		{
+			"name": "12. 🎯 Mark Ready (Buyer)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Order marked as ready', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"if (pm.response.code === 200) {",
+							"    console.log('✅ Order ready for pickup');",
+							"} else {",
+							"    console.log('❌ Status update failed:', pm.response.text());",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{buyerToken}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"status\": \"ready\",\n  \"notes\": \"Livre prêt pour récupération\"\n}"
+				},
+				"url": "http://localhost:5001/api/orders/{{orderId}}/status"
+			}
+		},
+		{
+			"name": "13. 🚚 Mark In Transit (Buyer)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Order marked as in transit', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"if (pm.response.code === 200) {",
+							"    console.log('✅ Order in transit - customer notified');",
+							"} else {",
+							"    console.log('❌ Status update failed:', pm.response.text());",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{buyerToken}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"status\": \"in_transit\",\n  \"notes\": \"Client notifié, livre prêt pour récupération\"\n}"
+				},
+				"url": "http://localhost:5001/api/orders/{{orderId}}/status"
+			}
+		},
+		{
+			"name": "14. 🎉 Complete Order (Customer)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Order completed successfully', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"if (pm.response.code === 200) {",
+							"    console.log('✅ Order completed successfully!');",
+							"    console.log('🎉 Transaction finished');",
+							"} else {",
+							"    console.log('❌ Order completion failed:', pm.response.text());",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{customerToken}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"status\": \"completed\",\n  \"notes\": \"Livre récupéré avec succès, merci!\"\n}"
+				},
+				"url": "http://localhost:5001/api/orders/{{orderId}}/status"
+			}
+		},
+		{
+			"name": "15. 🗺️ Generate GeoJSON Export",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('GeoJSON export generated', function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"if (pm.response.code === 201) {",
+							"    const response = pm.response.json();",
+							"    pm.globals.set('exportId', response.export.id);",
+							"    console.log('✅ GeoJSON export generated successfully');",
+							"    console.log('📄 Export ID:', response.export.id);",
+							"    console.log('📊 Features:', response.export.featureCount);",
+							"    console.log('📏 File Size:', response.export.fileSize, 'bytes');",
+							"} else {",
+							"    console.log('❌ GeoJSON export failed:', pm.response.text());",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{buyerToken}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"exportType\": \"buyer_orders\",\n  \"filters\": {\n    \"status\": [\"confirmed\", \"preparing\", \"ready\", \"in_transit\", \"completed\"],\n    \"orderType\": [\"pickup\", \"delivery\"]\n  }\n}"
+				},
+				"url": "http://localhost:5001/api/geojson/generate"
+			}
+		},
+		{
+			"name": "16. 👀 Preview GeoJSON",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('GeoJSON preview retrieved', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"if (pm.response.code === 200) {",
+							"    const response = pm.response.json();",
+							"    console.log('✅ GeoJSON preview retrieved');",
+							"    console.log('🗺️ Features:', response.preview.features.length);",
+							"    if (response.preview.features.length > 0) {",
+							"        const feature = response.preview.features[0];",
+							"        console.log('📍 Location:', feature.properties.locationName);",
+							"        console.log('📚 Book:', feature.properties.bookTitle);",
+							"    }",
+							"} else {",
+							"    console.log('❌ GeoJSON preview failed:', pm.response.text());",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{buyerToken}}"
+					}
+				],
+				"url": "http://localhost:5001/api/geojson/preview/{{exportId}}"
+			}
+		},
+		{
+			"name": "17. 📱 Download GeoJSON (Mobile Ready)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('GeoJSON download successful', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"if (pm.response.code === 200) {",
+							"    console.log('✅ GeoJSON file downloaded successfully');",
+							"    console.log('📱 Ready for Flutter mobile app import');",
+							"} else {",
+							"    console.log('❌ GeoJSON download failed:', pm.response.text());",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{buyerToken}}"
+					}
+				],
+				"url": "http://localhost:5001/api/geojson/download/{{exportId}}"
+			}
+		},
+		{
+			"name": "18. 🗑️ Clean Up - Delete Export",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Export deleted successfully', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"if (pm.response.code === 200) {",
+							"    console.log('✅ Export deleted successfully');",
+							"    console.log('🧹 Cleanup completed');",
+							"} else {",
+							"    console.log('❌ Export deletion failed:', pm.response.text());",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{buyerToken}}"
+					}
+				],
+				"url": "http://localhost:5001/api/geojson/{{exportId}}"
+			}
+		}
+	]
+}
