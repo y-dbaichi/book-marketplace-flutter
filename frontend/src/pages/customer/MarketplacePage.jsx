@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/common/Button';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import Modal from '../../components/common/Modal';
+import BookSuppliersMap from '../../components/common/BookSuppliersMap';
 
 export default function MarketplacePage() {
   const [books, setBooks] = useState([]);
@@ -12,6 +13,7 @@ export default function MarketplacePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBook, setSelectedBook] = useState(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
+  const [showSuppliersMap, setShowSuppliersMap] = useState(false);
   const [orderLoading, setOrderLoading] = useState(false);
 
   const { isAuthenticated, user } = useAuth();
@@ -49,6 +51,11 @@ export default function MarketplacePage() {
     }
     setSelectedBook(book);
     setShowOrderModal(true);
+  };
+
+  const handleFindSuppliers = (book) => {
+    setSelectedBook(book);
+    setShowSuppliersMap(true);
   };
 
   const submitOrder = async () => {
@@ -224,15 +231,25 @@ export default function MarketplacePage() {
                       </small>
                     </div>
 
-                    <Button
-                      variant="primary"
-                      className="w-100"
-                      onClick={() => handleOrderBook(book)}
-                      disabled={book.quantity === 0}
-                    >
-                      <i className="bi bi-cart-plus me-2"></i>
-                      {book.quantity === 0 ? 'Out of Stock' : 'Order Book'}
-                    </Button>
+                    <div className="d-flex gap-2">
+                      <Button
+                        variant="outline"
+                        className="flex-fill"
+                        onClick={() => handleFindSuppliers(book)}
+                      >
+                        <i className="bi bi-geo-alt me-1"></i>
+                        Find Suppliers
+                      </Button>
+                      <Button
+                        variant={book.quantity === 0 ? 'outline' : 'primary'}
+                        className="flex-fill"
+                        onClick={() => handleOrderBook(book)}
+                        disabled={book.quantity === 0}
+                      >
+                        <i className={`bi ${book.quantity === 0 ? 'bi-x-circle' : 'bi-cart-plus'} me-1`}></i>
+                        {book.quantity === 0 ? 'Out of Stock' : 'Order'}
+                      </Button>
+                    </div>
                   </Card.Body>
                 </Card>
               </Col>
@@ -308,6 +325,14 @@ export default function MarketplacePage() {
             </div>
           )}
         </Modal>
+
+        {/* Book Suppliers Map Modal */}
+        <BookSuppliersMap
+          isOpen={showSuppliersMap}
+          onClose={() => setShowSuppliersMap(false)}
+          bookTitle={selectedBook?.title}
+          bookAuthor={selectedBook?.author}
+        />
       </Container>
     </div>
   );

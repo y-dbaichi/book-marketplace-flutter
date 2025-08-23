@@ -574,6 +574,42 @@ body {
   color: #48bb78;
 }
 
+/* Order Cards */
+.order-card {
+  transition: all 0.3s ease;
+}
+
+.order-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--card-shadow-hover);
+}
+
+.client-card,
+.supplier-card {
+  transition: all 0.3s ease;
+  border: none;
+  box-shadow: var(--card-shadow);
+}
+
+.client-card:hover,
+.supplier-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--card-shadow-hover);
+}
+
+.location-popup {
+  min-width: 250px;
+}
+
+.location-popup h6 {
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+}
+
+.location-popup .badge {
+  font-size: 0.7rem;
+}
+
 /* Utility Classes */
 .cursor-pointer {
   cursor: pointer;

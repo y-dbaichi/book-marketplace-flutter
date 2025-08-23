@@ -54,6 +54,10 @@ export default function Header() {
                       <i className="bi bi-download me-1"></i>
                       GeoJSON Exports
                     </Nav.Link>
+                    <Nav.Link as={Link} to="/buyer/clients">
+                      <i className="bi bi-people me-1"></i>
+                      My Clients
+                    </Nav.Link>
                   </>
                 ) : (
                   <>
@@ -64,6 +68,10 @@ export default function Header() {
                     <Nav.Link as={Link} to="/customer/orders">
                       <i className="bi bi-bag-check me-1"></i>
                       My Orders
+                    </Nav.Link>
+                    <Nav.Link as={Link} to="/customer/suppliers">
+                      <i className="bi bi-shop me-1"></i>
+                      My Suppliers
                     </Nav.Link>
                   </>
                 )}

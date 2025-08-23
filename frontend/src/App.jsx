@@ -12,7 +12,9 @@ import BuyerDashboard from './pages/buyer/BuyerDashboard';
 import BuyerBooks from './pages/buyer/BuyerBooks';
 import BuyerOrders from './pages/buyer/BuyerOrders';
 import BuyerExports from './pages/buyer/BuyerExports';
+import BuyerClients from './pages/buyer/BuyerClients';
 import CustomerOrders from './pages/customer/CustomerOrders';
+import CustomerSuppliers from './pages/customer/CustomerSuppliers';
 import ProfilePage from './pages/shared/ProfilePage';
 
 // Protected Route Component
@@ -99,11 +101,21 @@ function AppRoutes() {
                             <BuyerExports />
                         </ProtectedRoute>
                     } />
+                    <Route path="/buyer/clients" element={
+                        <ProtectedRoute requiredRole="buyer">
+                            <BuyerClients />
+                        </ProtectedRoute>
+                    } />
 
                     {/* Customer Routes */}
                     <Route path="/customer/orders" element={
                         <ProtectedRoute requiredRole="customer">
                             <CustomerOrders />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/customer/suppliers" element={
+                        <ProtectedRoute requiredRole="customer">
+                            <CustomerSuppliers />
                         </ProtectedRoute>
                     } />
 

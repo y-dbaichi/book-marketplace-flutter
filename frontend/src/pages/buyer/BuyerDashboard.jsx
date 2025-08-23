@@ -254,6 +254,12 @@ export default function BuyerDashboard() {
                     GeoJSON Exports
                   </Button>
                 </Link>
+                <Link to="/buyer/clients">
+                  <Button variant="outline" className="w-100 text-start">
+                    <i className="bi bi-people me-2"></i>
+                    View My Clients
+                  </Button>
+                </Link>
                 <Link to="/profile">
                   <Button variant="outline" className="w-100 text-start">
                     <i className="bi bi-gear me-2"></i>
