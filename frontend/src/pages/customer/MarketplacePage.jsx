@@ -332,6 +332,7 @@ export default function MarketplacePage() {
           onClose={() => setShowSuppliersMap(false)}
           bookTitle={selectedBook?.title}
           bookAuthor={selectedBook?.author}
+          statusFilters={['pending', 'confirmed', 'completed']} // Pass all statuses or connect to filter UI
         />
       </Container>
     </div>

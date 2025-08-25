@@ -20,13 +20,13 @@ export default function CustomerSuppliers() {
       const response = await orderService.getCustomerOrders();
       const orders = response.orders || [];
       
-      // Group orders by seller to create supplier data
+      // Group orders by buyer to create supplier data
       const suppliersMap = new Map();
       
       orders.forEach(order => {
-        const seller = order.book?.seller;
-        if (seller && seller.location) {
-          const supplierId = seller._id;
+        const buyer = order.book?.buyer;
+        if (buyer && buyer.location) {
+          const supplierId = buyer._id;
           
           if (suppliersMap.has(supplierId)) {
             const existingSupplier = suppliersMap.get(supplierId);
@@ -39,12 +39,12 @@ export default function CustomerSuppliers() {
           } else {
             suppliersMap.set(supplierId, {
               id: supplierId,
-              name: seller.location.name || `${seller.profile?.firstName || ''} ${seller.profile?.lastName || ''}`.trim() || seller.email,
-              email: seller.email,
-              phone: seller.phone,
-              address: seller.location.address,
-              latitude: seller.location.coordinates.latitude,
-              longitude: seller.location.coordinates.longitude,
+              name: buyer.location.name || `${buyer.profile?.firstName || ''} ${buyer.profile?.lastName || ''}`.trim() || buyer.email,
+              email: buyer.email,
+              phone: buyer.phone,
+              address: buyer.location.address,
+              latitude: buyer.location.coordinates.latitude,
+              longitude: buyer.location.coordinates.longitude,
               totalOrders: 1,
               totalSpent: order.totalPrice || 0,
               lastOrder: new Date(order.createdAt),

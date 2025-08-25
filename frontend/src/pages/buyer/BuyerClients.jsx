@@ -19,15 +19,15 @@ export default function BuyerClients() {
       setLoading(true);
       const response = await orderService.getBuyerOrders();
       const orders = response.orders || [];
-      
+
       // Group orders by customer to create client data
       const clientsMap = new Map();
-      
+
       orders.forEach(order => {
         const customer = order.customer;
         if (customer && customer.location) {
           const clientId = customer._id;
-          
+
           if (clientsMap.has(clientId)) {
             const existingClient = clientsMap.get(clientId);
             existingClient.totalOrders += 1;
@@ -53,7 +53,7 @@ export default function BuyerClients() {
           }
         }
       });
-      
+
       setClients(Array.from(clientsMap.values()));
     } catch (error) {
       console.error('Error fetching clients:', error);
@@ -100,7 +100,7 @@ export default function BuyerClients() {
             </Card.Body>
           </Card>
         </Tab>
-        
+
         <Tab eventKey="list" title={
           <span>
             <i className="bi bi-list me-2"></i>
@@ -130,7 +130,7 @@ export default function BuyerClients() {
                           <small className="text-muted">{client.email}</small>
                         </div>
                       </div>
-                      
+
                       <div className="client-stats mb-3">
                         <div className="d-flex justify-content-between mb-2">
                           <span className="text-muted">Total Orders:</span>
@@ -145,12 +145,12 @@ export default function BuyerClients() {
                           <small>{client.lastOrder.toLocaleDateString()}</small>
                         </div>
                       </div>
-                      
+
                       <div className="client-location">
                         <i className="bi bi-geo-alt me-1 text-muted"></i>
                         <small className="text-muted">{client.address}</small>
                       </div>
-                      
+
                       {client.phone && (
                         <div className="client-phone mt-2">
                           <i className="bi bi-telephone me-1 text-muted"></i>

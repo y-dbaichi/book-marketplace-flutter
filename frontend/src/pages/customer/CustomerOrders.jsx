@@ -59,15 +59,15 @@ export default function CustomerOrders() {
 
   // Create map points from orders for location view
   const orderLocations = orders
-    .filter(order => order.book?.seller?.location)
+    .filter(order => order.book?.buyer?.location)
     .map(order => ({
       id: order._id,
-      name: order.book.seller.location.name,
-      email: order.book.seller.email,
-      phone: order.book.seller.phone,
-      address: order.book.seller.location.address,
-      latitude: order.book.seller.location.coordinates.latitude,
-      longitude: order.book.seller.location.coordinates.longitude,
+      name: order.book.buyer.location.name,
+      email: order.book.buyer.email,
+      phone: order.book.buyer.phone,
+      address: order.book.buyer.location.address,
+      latitude: order.book.buyer.location.coordinates.latitude,
+      longitude: order.book.buyer.location.coordinates.longitude,
       status: order.status,
       bookTitle: order.book.title,
       totalPrice: order.totalPrice,
@@ -150,9 +150,14 @@ export default function CustomerOrders() {
                           <span className="text-muted">Quantity:</span>
                           <span>{order.quantity}</span>
                         </div>
-                        <div className="d-flex justify-content-between">
+                        <div className="d-flex justify-content-between mb-2">
                           <span className="text-muted">Order Date:</span>
                           <span>{new Date(order.createdAt).toLocaleDateString()}</span>
+                        </div>
+                        {/* Always show the pickup/delivery location for this order */}
+                        <div className="d-flex justify-content-between mb-2">
+                          <span className="text-muted">Pickup/Delivery Location:</span>
+                          <span>{order.pickupLocation || order.book?.buyer?.location?.address || 'N/A'}</span>
                         </div>
                       </div>
 
@@ -163,16 +168,16 @@ export default function CustomerOrders() {
                         </h6>
                         <div className="bg-light p-3 rounded">
                           <div className="mb-1">
-                            <strong>{order.book?.seller?.location?.name}</strong>
+                            <strong>{order.book?.buyer?.location?.name}</strong>
                           </div>
                           <div className="mb-1">
                             <i className="bi bi-geo-alt me-1"></i>
-                            <small>{order.book?.seller?.location?.address}</small>
+                            <small>{order.book?.buyer?.location?.address}</small>
                           </div>
-                          {order.book?.seller?.phone && (
+                          {order.book?.buyer?.phone && (
                             <div>
                               <i className="bi bi-telephone me-1"></i>
-                              <small>{order.book?.seller?.phone}</small>
+                              <small>{order.book?.buyer?.phone}</small>
                             </div>
                           )}
                         </div>
@@ -184,6 +189,26 @@ export default function CustomerOrders() {
                             <i className="bi bi-chat-left-text me-1"></i>
                             Note: {order.customerNotes}
                           </small>
+                        </div>
+                      )}
+
+                      {/* Approve/Acknowledge button for buyer to confirm pickup/delivery */}
+                      {['confirmed', 'in_transit'].includes(order.status) && (
+                        <div className="d-flex justify-content-end mt-3">
+                          <Button
+                            variant="success"
+                            size="sm"
+                            onClick={async () => {
+                              try {
+                                await orderService.updateOrderStatus(order._id, 'completed');
+                                setOrders(orders => orders.map(o => o._id === order._id ? { ...o, status: 'completed' } : o));
+                              } catch (err) {
+                                alert('Failed to update order status.');
+                              }
+                            }}
+                          >
+                            {order.status === 'confirmed' ? 'Acknowledge Pickup' : 'Mark as Completed'}
+                          </Button>
                         </div>
                       )}
                     </Card.Body>
@@ -208,6 +233,22 @@ export default function CustomerOrders() {
                 title="Pickup Locations"
                 loading={loading}
               />
+              {/* Show all orders as a list below the map for clarity */}
+              {orderLocations.length > 0 && (
+                <div className="mt-4">
+                  <h5 className="mb-3">Your Orders on the Map</h5>
+                  <ul className="list-group">
+                    {orderLocations.map(loc => (
+                      <li key={loc.id} className="list-group-item d-flex flex-column align-items-start">
+                        <div><strong>{loc.bookTitle}</strong> <span className="text-muted">({loc.status})</span></div>
+                        <div><i className="bi bi-geo-alt me-1"></i> {loc.address}</div>
+                        <div><i className="bi bi-calendar me-1"></i> {new Date(loc.orderDate).toLocaleDateString()}</div>
+                        <div><i className="bi bi-cash me-1"></i> {loc.totalPrice}€</div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </Card.Body>
           </Card>
         </Tab>

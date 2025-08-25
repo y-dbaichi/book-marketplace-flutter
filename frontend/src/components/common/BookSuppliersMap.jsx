@@ -9,7 +9,8 @@ export default function BookSuppliersMap({
   isOpen, 
   onClose, 
   bookTitle, 
-  bookAuthor 
+  bookAuthor, 
+  statusFilters = ['pending', 'confirmed', 'completed'] // new prop for filtering
 }) {
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -18,7 +19,7 @@ export default function BookSuppliersMap({
     if (isOpen && bookTitle) {
       fetchBookSuppliers();
     }
-  }, [isOpen, bookTitle]);
+  }, [isOpen, bookTitle, statusFilters]);
 
   const fetchBookSuppliers = async () => {
     try {
@@ -30,21 +31,21 @@ export default function BookSuppliersMap({
       
       const books = response.books || [];
       
-      // Create supplier points from books
+      // Create supplier points from books, filter by status
       const supplierPoints = books
-        .filter(book => book.seller?.location && book.quantity > 0)
+        .filter(book => book.buyer?.location && book.quantity > 0 && statusFilters.includes(book.status))
         .map(book => ({
           id: book._id,
-          name: book.seller.location.name,
-          email: book.seller.email,
-          phone: book.seller.phone,
-          address: book.seller.location.address,
-          latitude: book.seller.location.coordinates.latitude,
-          longitude: book.seller.location.coordinates.longitude,
+          name: book.buyer.location.name,
+          email: book.buyer.email,
+          phone: book.buyer.phone,
+          address: book.buyer.location.address,
+          latitude: book.buyer.location.coordinates.latitude,
+          longitude: book.buyer.location.coordinates.longitude,
           price: book.price,
           quality: book.quality,
           quantity: book.quantity,
-          status: 'available',
+          status: book.status,
           bookId: book._id
         }));
       
