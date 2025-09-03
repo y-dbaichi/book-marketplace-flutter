@@ -19,15 +19,12 @@ export default function CustomerSuppliers() {
       setLoading(true);
       const response = await orderService.getCustomerOrders();
       const orders = response.orders || [];
-      
       // Group orders by buyer to create supplier data
       const suppliersMap = new Map();
-      
       orders.forEach(order => {
         const buyer = order.book?.buyer;
         if (buyer && buyer.location) {
           const supplierId = buyer._id;
-          
           if (suppliersMap.has(supplierId)) {
             const existingSupplier = suppliersMap.get(supplierId);
             existingSupplier.totalOrders += 1;
@@ -53,7 +50,6 @@ export default function CustomerSuppliers() {
           }
         }
       });
-      
       setSuppliers(Array.from(suppliersMap.values()));
     } catch (error) {
       console.error('Error fetching suppliers:', error);
@@ -81,14 +77,8 @@ export default function CustomerSuppliers() {
           <p className="text-muted mb-0">View your trusted book suppliers and their locations</p>
         </div>
       </div>
-
       <Tabs defaultActiveKey="map" className="mb-4">
-        <Tab eventKey="map" title={
-          <span>
-            <i className="bi bi-map me-2"></i>
-            Map View
-          </span>
-        }>
+        <Tab eventKey="map" title={<span><i className="bi bi-map me-2"></i>Map View</span>}>
           <Card>
             <Card.Body>
               <LocationMap
@@ -100,13 +90,7 @@ export default function CustomerSuppliers() {
             </Card.Body>
           </Card>
         </Tab>
-        
-        <Tab eventKey="list" title={
-          <span>
-            <i className="bi bi-list me-2"></i>
-            List View
-          </span>
-        }>
+        <Tab eventKey="list" title={<span><i className="bi bi-list me-2"></i>List View</span>}>
           <Row>
             {suppliers.length === 0 ? (
               <Col>
@@ -130,7 +114,6 @@ export default function CustomerSuppliers() {
                           <small className="text-muted">{supplier.email}</small>
                         </div>
                       </div>
-                      
                       <div className="supplier-stats mb-3">
                         <div className="d-flex justify-content-between mb-2">
                           <span className="text-muted">Total Orders:</span>
@@ -145,12 +128,10 @@ export default function CustomerSuppliers() {
                           <small>{supplier.lastOrder.toLocaleDateString()}</small>
                         </div>
                       </div>
-                      
                       <div className="supplier-location">
                         <i className="bi bi-geo-alt me-1 text-muted"></i>
                         <small className="text-muted">{supplier.address}</small>
                       </div>
-                      
                       {supplier.phone && (
                         <div className="supplier-phone mt-2">
                           <i className="bi bi-telephone me-1 text-muted"></i>

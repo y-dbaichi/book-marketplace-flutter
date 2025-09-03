@@ -183,8 +183,8 @@ router.get('/download/:id', auth, async (req, res) => {
     res.setHeader('Content-Length', exportRecord.fileSize);
 
     // Send the GeoJSON data
-    res.json(exportRecord.geoJSONData);
-
+    res.attachment(exportRecord.fileName);
+    res.send(JSON.stringify(exportRecord.geoJSONData));
   } catch (error) {
     console.error('Download export error:', error);
     if (error.name === 'CastError') {

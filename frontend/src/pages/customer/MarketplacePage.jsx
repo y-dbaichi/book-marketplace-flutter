@@ -180,13 +180,64 @@ export default function MarketplacePage() {
         </Row>
 
         {/* Books Grid */}
-        {filteredBooks.length === 0 ? (
+        {loading ? (
           <div className="text-center py-5">
-            <i className="bi bi-book fs-1 text-muted mb-3"></i>
-            <h3 className="text-muted">No books found</h3>
-            <p className="text-muted">
-              {searchTerm ? 'Try adjusting your search terms' : 'No books available at the moment'}
-            </p>
+            <LoadingSpinner size="lg" />
+          </div>
+        ) : filteredBooks.length === 0 ? (
+          <div className="text-center py-5">
+            <div className="empty-state">
+              <i className="bi bi-book fs-1 text-muted mb-4"></i>
+              <h3 className="text-muted mb-3">
+                {searchTerm ? 'No books found' : 'No Books Available Yet'}
+              </h3>
+              <p className="text-muted mb-4">
+                {searchTerm
+                  ? 'Try adjusting your search terms or browse all books'
+                  : 'Be the first to discover amazing books! Start by adding your collection or wait for sellers to join.'
+                }
+              </p>
+              {!searchTerm && (
+                <>
+                  {user?.userType === 'buyer' && (
+                    <div className="d-flex justify-content-center gap-3 mb-3">
+                      <Button variant="primary" onClick={() => window.location.href = '/buyer/books'}>
+                        <i className="bi bi-plus-circle me-2"></i>
+                        Add Your First Book
+                      </Button>
+                      <Button variant="outline" onClick={() => window.location.href = '/buyer/dashboard'}>
+                        <i className="bi bi-speedometer2 me-2"></i>
+                        Go to Dashboard
+                      </Button>
+                    </div>
+                  )}
+                  {user?.userType === 'customer' && (
+                    <div className="d-flex justify-content-center gap-3 mb-3">
+                      <Button variant="outline" onClick={() => window.location.reload()}>
+                        <i className="bi bi-arrow-clockwise me-2"></i>
+                        Refresh Page
+                      </Button>
+                      <Button variant="primary" onClick={() => window.location.href = '/register'}>
+                        <i className="bi bi-shop me-2"></i>
+                        Become a Seller
+                      </Button>
+                    </div>
+                  )}
+                  {!isAuthenticated && (
+                    <div className="d-flex justify-content-center gap-3 mb-3">
+                      <Button variant="primary" onClick={() => window.location.href = '/register'}>
+                        <i className="bi bi-person-plus me-2"></i>
+                        Join as Seller
+                      </Button>
+                      <Button variant="outline" onClick={() => window.location.href = '/login'}>
+                        <i className="bi bi-box-arrow-in-right me-2"></i>
+                        Sign In
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         ) : (
           <Row>

@@ -1,0 +1,944 @@
+{
+	"info": {
+		"_postman_id": "book-marketplace-api-complete",
+		"name": "Book Marketplace API - Complete",
+		"description": "Complete API collection for Book Marketplace with all endpoints including new rejection/cancellation functionality and GeoJSON exports",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "🔐 Authentication",
+			"item": [
+				{
+					"name": "Register Customer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"customer{{$timestamp}}@example.com\",\n  \"password\": \"password123\",\n  \"userType\": \"customer\",\n  \"phone\": \"+1234567890\",\n  \"profile\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\"\n  },\n  \"location\": {\n    \"name\": \"Home\",\n    \"coordinates\": {\n      \"latitude\": 40.7128,\n      \"longitude\": -74.0060\n    },\n    \"address\": \"123 Main St, New York, NY 10001\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "register"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register Buyer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"buyer{{$timestamp}}@example.com\",\n  \"password\": \"password123\",\n  \"userType\": \"buyer\",\n  \"phone\": \"+1987654321\",\n  \"profile\": {\n    \"firstName\": \"Jane\",\n    \"lastName\": \"Smith\"\n  },\n  \"location\": {\n    \"name\": \"Bookstore\",\n    \"coordinates\": {\n      \"latitude\": 40.7589,\n      \"longitude\": -73.9851\n    },\n    \"address\": \"456 Broadway, New York, NY 10013\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "register"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login Customer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "login"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login Buyer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{buyerEmail}}\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "login"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "me"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "📚 Books Management",
+			"item": [
+				{
+					"name": "Create Book",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{buyerAuthToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"The Great Gatsby\",\n  \"author\": \"F. Scott Fitzgerald\",\n  \"quality\": \"excellent\",\n  \"quantity\": 5,\n  \"price\": 15.99,\n  \"description\": \"A classic American novel about the Jazz Age\",\n  \"category\": \"Fiction\",\n  \"isbn\": \"978-0743273565\",\n  \"condition\": {\n    \"hasWriting\": false,\n    \"hasHighlighting\": false,\n    \"hasDamage\": false\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/books",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "books"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Books",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/books",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "books"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Book by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/books/{{bookId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "books", "{{bookId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Listings",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{buyerAuthToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/books/my/listings",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "books", "my", "listings"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Book",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{buyerAuthToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"The Great Gatsby (Updated)\",\n  \"price\": 12.99,\n  \"quantity\": 3\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/books/{{bookId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "books", "{{bookId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Book",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{buyerAuthToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/books/{{bookId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "books", "{{bookId}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🛒 Orders Management",
+			"item": [
+				{
+					"name": "Create Order (Customer)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customerAuthToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"bookId\": \"{{bookId}}\",\n  \"quantity\": 2,\n  \"customerNotes\": \"Please deliver in the morning if possible\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/orders",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "orders"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Customer Orders",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customerAuthToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/my/customer",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "orders", "my", "customer"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Buyer Orders",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{buyerAuthToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/my/buyer",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "orders", "my", "buyer"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Order Status",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{buyerAuthToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"confirmed\",\n  \"notes\": \"Order confirmed and will be prepared\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/{{orderId}}/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "orders", "{{orderId}}", "status"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reject Order (Buyer)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{buyerAuthToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"reason\": \"Book is currently out of stock and will not be available for the next 2 weeks\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/{{orderId}}/reject",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "orders", "{{orderId}}", "reject"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Order (Customer)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customerAuthToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"reason\": \"Changed my mind, found a better deal elsewhere\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/{{orderId}}/cancel",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "orders", "{{orderId}}", "cancel"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🗺️ GeoJSON Exports",
+			"item": [
+				{
+					"name": "Generate GeoJSON Export",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{buyerAuthToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"filters\": {\n    \"status\": [\"pending\", \"confirmed\", \"ready\", \"in_transit\"],\n    \"dateRange\": {\n      \"from\": \"2024-01-01T00:00:00.000Z\",\n      \"to\": \"2024-12-31T23:59:59.999Z\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/geojson/generate",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "geojson", "generate"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Exports",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{buyerAuthToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/geojson/my-exports",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "geojson", "my-exports"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Download GeoJSON Export",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{buyerAuthToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/geojson/download/{{exportId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "geojson", "download", "{{exportId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Preview GeoJSON Export",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{buyerAuthToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/geojson/preview/{{exportId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "geojson", "preview", "{{exportId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete GeoJSON Export",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{buyerAuthToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/geojson/{{exportId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "geojson", "{{exportId}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "👤 Profile Management",
+			"item": [
+				{
+					"name": "Update Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"profile\": {\n    \"firstName\": \"Updated First Name\",\n    \"lastName\": \"Updated Last Name\",\n    \"bio\": \"Updated bio information\"\n  },\n  \"phone\": \"+15551234567\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/profile",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "profile"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🧪 Test Scenarios",
+			"item": [
+				{
+					"name": "Complete Order Flow",
+					"item": [
+						{
+							"name": "1. Create Book",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{buyerAuthToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"title\": \"Test Book for Order Flow\",\n  \"author\": \"Test Author\",\n  \"quality\": \"good\",\n  \"quantity\": 10,\n  \"price\": 9.99,\n  \"description\": \"A test book for testing the complete order flow\",\n  \"category\": \"Test\",\n  \"isbn\": \"978-0000000000\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/books",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "books"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "2. Create Order",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{customerAuthToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"bookId\": \"{{bookId}}\",\n  \"quantity\": 1,\n  \"customerNotes\": \"Test order for complete flow\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/orders",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "orders"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "3. Confirm Order",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{buyerAuthToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"status\": \"confirmed\",\n  \"notes\": \"Order confirmed for testing\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/orders/{{orderId}}/status",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "orders", "{{orderId}}", "status"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "4. Mark as Ready",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{buyerAuthToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"status\": \"ready\",\n  \"notes\": \"Book is ready for delivery\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/orders/{{orderId}}/status",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "orders", "{{orderId}}", "status"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "5. Mark as In Transit",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{buyerAuthToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"status\": \"in_transit\",\n  \"notes\": \"Out for delivery\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/orders/{{orderId}}/status",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "orders", "{{orderId}}", "status"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "6. Complete Order",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{customerAuthToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"status\": \"completed\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/orders/{{orderId}}/status",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "orders", "{{orderId}}", "status"]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Rejection Flow Test",
+					"item": [
+						{
+							"name": "1. Create Test Book",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{buyerAuthToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"title\": \"Book for Rejection Test\",\n  \"author\": \"Rejection Author\",\n  \"quality\": \"fair\",\n  \"quantity\": 1,\n  \"price\": 5.99,\n  \"description\": \"A book to test rejection flow\",\n  \"category\": \"Test\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/books",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "books"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "2. Create Order",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{customerAuthToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"bookId\": \"{{bookId}}\",\n  \"quantity\": 1,\n  \"customerNotes\": \"Test order for rejection\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/orders",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "orders"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "3. Reject Order",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{buyerAuthToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"reason\": \"Book was damaged during inventory check and is no longer suitable for sale\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/orders/{{orderId}}/reject",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "orders", "{{orderId}}", "reject"]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Cancellation Flow Test",
+					"item": [
+						{
+							"name": "1. Create Test Book",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{buyerAuthToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"title\": \"Book for Cancellation Test\",\n  \"author\": \"Cancellation Author\",\n  \"quality\": \"good\",\n  \"quantity\": 5,\n  \"price\": 12.99,\n  \"description\": \"A book to test cancellation flow\",\n  \"category\": \"Test\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/books",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "books"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "2. Create Order",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{customerAuthToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"bookId\": \"{{bookId}}\",\n  \"quantity\": 2,\n  \"customerNotes\": \"Test order for cancellation\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/orders",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "orders"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "3. Cancel Order",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{customerAuthToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"reason\": \"Found the same book at a local bookstore for a better price\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/orders/{{orderId}}/cancel",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "orders", "{{orderId}}", "cancel"]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Auto-generate timestamp for unique emails",
+					"pm.globals.set('timestamp', Date.now());"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Auto-extract IDs from responses",
+					"if (pm.response.json() && pm.response.json().book && pm.response.json().book._id) {",
+					"    pm.globals.set('bookId', pm.response.json().book._id);",
+					"}",
+					"if (pm.response.json() && pm.response.json().order && pm.response.json().order._id) {",
+					"    pm.globals.set('orderId', pm.response.json().order._id);",
+					"}",
+					"if (pm.response.json() && pm.response.json().export && pm.response.json().export.id) {",
+					"    pm.globals.set('exportId', pm.response.json().export.id);",
+					"}",
+					"if (pm.response.json() && pm.response.json().token) {",
+					"    pm.globals.set('authToken', pm.response.json().token);",
+					"}",
+					"if (pm.response.json() && pm.response.json().user && pm.response.json().user.userType === 'customer') {",
+					"    pm.globals.set('customerAuthToken', pm.response.json().token);",
+					"    pm.globals.set('customerEmail', pm.response.json().user.email);",
+					"}",
+					"if (pm.response.json() && pm.response.json().user && pm.response.json().user.userType === 'buyer') {",
+					"    pm.globals.set('buyerAuthToken', pm.response.json().token);",
+					"    pm.globals.set('buyerEmail', pm.response.json().user.email);",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5001",
+			"type": "string"
+		},
+		{
+			"key": "authToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "customerAuthToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "buyerAuthToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "customerEmail",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "buyerEmail",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "bookId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "orderId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "exportId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "timestamp",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

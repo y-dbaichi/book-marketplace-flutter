@@ -65,7 +65,12 @@ router.post('/', auth, requireCustomer, async (req, res) => {
       quantity,
       totalPrice,
       orderType,
-      customerNotes
+      customerNotes,
+      // Optionally set locations for pickup/delivery
+      locations: {
+        buyerLocation: book.buyer.location || undefined,
+        // You can add customerLocation if needed, e.g. from req.user.location
+      }
     });
 
     await order.save();
@@ -74,7 +79,13 @@ router.post('/', auth, requireCustomer, async (req, res) => {
     await order.populate([
       { path: 'customer', select: 'profile phone location' },
       { path: 'buyer', select: 'profile phone location' },
-      { path: 'book', select: 'title author price' }
+      {
+        path: 'book',
+        select: 'title author price buyer',
+        populate: [
+          { path: 'buyer', select: 'profile phone location' }
+        ]
+      }
     ]);
 
     res.status(201).json({
@@ -105,7 +116,13 @@ router.get('/my/customer', auth, requireCustomer, async (req, res) => {
 
     const orders = await Order.find(query)
       .populate('buyer', 'profile phone location')
-      .populate('book', 'title author price')
+      .populate({
+        path: 'book',
+        select: 'title author price buyer',
+        populate: [
+          { path: 'buyer', select: 'profile phone location' }
+        ]
+      })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
@@ -146,7 +163,13 @@ router.get('/my/buyer', auth, requireBuyer, async (req, res) => {
 
     const orders = await Order.find(query)
       .populate('customer', 'profile phone location')
-      .populate('book', 'title author price')
+      .populate({
+        path: 'book',
+        select: 'title author price buyer',
+        populate: [
+          { path: 'buyer', select: 'profile phone location' }
+        ]
+      })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));

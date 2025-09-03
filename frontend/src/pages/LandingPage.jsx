@@ -65,37 +65,64 @@ export default function LandingPage() {
         </Row>
 
         <Row>
-          <Col md={4} className="mb-4">
-            <Card className="feature-card h-100 border-0 text-center p-4">
-              <div className="feature-icon-wrapper mb-4">
-                <i className="bi bi-geo-alt-fill feature-icon"></i>
-              </div>
-              <h4 className="fw-bold mb-3">Local Community</h4>
-              <p className="text-muted">
-                Connect with book lovers in your neighborhood. Meet in person for safe, local transactions.
-              </p>
+          <Col lg={4} md={6} className="mb-4">
+            <Card className="feature-card-enhanced h-100 border-0 overflow-hidden">
+              <div className="feature-gradient-bg-1"></div>
+              <Card.Body className="p-5 position-relative">
+                <div className="feature-icon-enhanced mb-4">
+                  <i className="bi bi-geo-alt-fill"></i>
+                </div>
+                <h4 className="fw-bold mb-3 text-white">Local Community</h4>
+                <p className="text-white-50 mb-4">
+                  Connect with book lovers in your neighborhood. Meet in person for safe, local transactions with interactive maps.
+                </p>
+                <div className="feature-stats">
+                  <div className="d-flex justify-content-between text-white-50 small">
+                    <span>📍 GPS Enabled</span>
+                    <span>🗺️ Interactive Maps</span>
+                  </div>
+                </div>
+              </Card.Body>
             </Card>
           </Col>
-          <Col md={4} className="mb-4">
-            <Card className="feature-card h-100 border-0 text-center p-4">
-              <div className="feature-icon-wrapper mb-4">
-                <i className="bi bi-phone feature-icon"></i>
-              </div>
-              <h4 className="fw-bold mb-3">Mobile Integration</h4>
-              <p className="text-muted">
-                Manage your business on the web, then use our mobile app for navigation and route planning.
-              </p>
+          <Col lg={4} md={6} className="mb-4">
+            <Card className="feature-card-enhanced h-100 border-0 overflow-hidden">
+              <div className="feature-gradient-bg-2"></div>
+              <Card.Body className="p-5 position-relative">
+                <div className="feature-icon-enhanced mb-4">
+                  <i className="bi bi-phone"></i>
+                </div>
+                <h4 className="fw-bold mb-3 text-white">Mobile Integration</h4>
+                <p className="text-white-50 mb-4">
+                  Manage your business on the web, then use our Flutter mobile app for navigation and route planning.
+                </p>
+                <div className="feature-stats">
+                  <div className="d-flex justify-content-between text-white-50 small">
+                    <span>📱 Flutter App</span>
+                    <span>🧭 GPS Navigation</span>
+                  </div>
+                </div>
+              </Card.Body>
             </Card>
           </Col>
-          <Col md={4} className="mb-4">
-            <Card className="feature-card h-100 border-0 text-center p-4">
-              <div className="feature-icon-wrapper mb-4">
-                <i className="bi bi-graph-up feature-icon"></i>
-              </div>
-              <h4 className="fw-bold mb-3">Business Analytics</h4>
-              <p className="text-muted">
-                Track your sales, manage inventory, and grow your book business with detailed insights.
-              </p>
+          <Col lg={4} md={6} className="mb-4">
+            <Card className="feature-card-enhanced h-100 border-0 overflow-hidden">
+              <div className="feature-gradient-bg-3"></div>
+              <Card.Body className="p-5 position-relative">
+                <div className="feature-icon-enhanced mb-4">
+                  <i className="bi bi-graph-up-arrow"></i>
+                </div>
+                <h4 className="fw-bold mb-3 text-white">Business Analytics</h4>
+                <p className="text-white-50 mb-4">
+                  Track your sales, manage inventory, and grow your book business with detailed insights and KPIs.
+                </p>
+                <div className="feature-stats">
+                  <div className="d-flex justify-content-between text-white-50 small">
+                    <span>📊 Real-time KPIs</span>
+                    <span>💰 Revenue Tracking</span>
+                  </div>
+                </div>
+              </Card.Body>
             </Card>
           </Col>
         </Row>

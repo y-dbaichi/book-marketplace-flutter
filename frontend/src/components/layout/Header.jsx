@@ -38,41 +38,86 @@ export default function Header() {
               <>
                 {user?.userType === 'buyer' ? (
                   <>
-                    <Nav.Link as={Link} to="/buyer/dashboard">
-                      <i className="bi bi-speedometer2 me-1"></i>
-                      Dashboard
-                    </Nav.Link>
-                    <Nav.Link as={Link} to="/buyer/books">
-                      <i className="bi bi-book me-1"></i>
-                      My Books
-                    </Nav.Link>
-                    <Nav.Link as={Link} to="/buyer/orders">
-                      <i className="bi bi-cart-check me-1"></i>
-                      Orders
-                    </Nav.Link>
-                    <Nav.Link as={Link} to="/buyer/exports">
-                      <i className="bi bi-download me-1"></i>
-                      GeoJSON Exports
-                    </Nav.Link>
-                    <Nav.Link as={Link} to="/buyer/clients">
-                      <i className="bi bi-people me-1"></i>
-                      My Clients
-                    </Nav.Link>
+                    <NavDropdown
+                      title={
+                        <span className="nav-dropdown-title">
+                          <i className="bi bi-grid-3x3-gap me-2"></i>
+                          Business
+                        </span>
+                      }
+                      id="buyer-dropdown"
+                      className="nav-dropdown-enhanced"
+                    >
+                      <NavDropdown.Item as={Link} to="/buyer/dashboard" className="nav-dropdown-item">
+                        <i className="bi bi-speedometer2 me-2 text-primary"></i>
+                        <div>
+                          <div className="fw-semibold">Dashboard</div>
+                          <small className="text-muted">Business overview & KPIs</small>
+                        </div>
+                      </NavDropdown.Item>
+                      <NavDropdown.Divider />
+                      <NavDropdown.Item as={Link} to="/buyer/books" className="nav-dropdown-item">
+                        <i className="bi bi-book me-2 text-success"></i>
+                        <div>
+                          <div className="fw-semibold">My Books</div>
+                          <small className="text-muted">Manage inventory</small>
+                        </div>
+                      </NavDropdown.Item>
+                      <NavDropdown.Item as={Link} to="/buyer/orders" className="nav-dropdown-item">
+                        <i className="bi bi-cart-check me-2 text-info"></i>
+                        <div>
+                          <div className="fw-semibold">Orders</div>
+                          <small className="text-muted">Customer orders</small>
+                        </div>
+                      </NavDropdown.Item>
+                      <NavDropdown.Divider />
+                      <NavDropdown.Item as={Link} to="/buyer/clients" className="nav-dropdown-item">
+                        <i className="bi bi-people me-2 text-warning"></i>
+                        <div>
+                          <div className="fw-semibold">My Clients</div>
+                          <small className="text-muted">Customer locations</small>
+                        </div>
+                      </NavDropdown.Item>
+                      <NavDropdown.Item as={Link} to="/buyer/exports" className="nav-dropdown-item">
+                        <i className="bi bi-download me-2 text-danger"></i>
+                        <div>
+                          <div className="fw-semibold">Mobile Export</div>
+                          <small className="text-muted">GeoJSON for Flutter</small>
+                        </div>
+                      </NavDropdown.Item>
+                    </NavDropdown>
                   </>
                 ) : (
                   <>
-                    <Nav.Link as={Link} to="/marketplace">
-                      <i className="bi bi-shop me-1"></i>
+                    <Nav.Link as={Link} to="/marketplace" className="nav-link-enhanced">
+                      <i className="bi bi-shop me-2"></i>
                       Marketplace
                     </Nav.Link>
-                    <Nav.Link as={Link} to="/customer/orders">
-                      <i className="bi bi-bag-check me-1"></i>
-                      My Orders
-                    </Nav.Link>
-                    <Nav.Link as={Link} to="/customer/suppliers">
-                      <i className="bi bi-shop me-1"></i>
-                      My Suppliers
-                    </Nav.Link>
+                    <NavDropdown
+                      title={
+                        <span className="nav-dropdown-title">
+                          <i className="bi bi-person-circle me-2"></i>
+                          My Account
+                        </span>
+                      }
+                      id="customer-dropdown"
+                      className="nav-dropdown-enhanced"
+                    >
+                      <NavDropdown.Item as={Link} to="/customer/orders" className="nav-dropdown-item">
+                        <i className="bi bi-bag-check me-2 text-primary"></i>
+                        <div>
+                          <div className="fw-semibold">My Orders</div>
+                          <small className="text-muted">Track order progress</small>
+                        </div>
+                      </NavDropdown.Item>
+                      <NavDropdown.Item as={Link} to="/customer/suppliers" className="nav-dropdown-item">
+                        <i className="bi bi-shop me-2 text-success"></i>
+                        <div>
+                          <div className="fw-semibold">My Suppliers</div>
+                          <small className="text-muted">Trusted book sellers</small>
+                        </div>
+                      </NavDropdown.Item>
+                    </NavDropdown>
                   </>
                 )}
               </>
