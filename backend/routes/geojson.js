@@ -1,6 +1,6 @@
 const express = require('express');
 const GeoJSONExport = require('../models/GeoJSONExport');
-const { auth } = require('../middleware/auth');
+const { auth } = require('../middleware/auth.js');
 
 const router = express.Router();
 
@@ -38,15 +38,15 @@ router.post('/generate', auth, async (req, res) => {
 
     // Process filters
     const processedFilters = {};
-    
+
     if (filters.status && Array.isArray(filters.status)) {
       processedFilters.status = filters.status;
     }
-    
+
     if (filters.orderType && Array.isArray(filters.orderType)) {
       processedFilters.orderType = filters.orderType;
     }
-    
+
     if (filters.dateRange) {
       processedFilters.dateRange = {};
       if (filters.dateRange.from) {
@@ -95,7 +95,7 @@ router.get('/my-exports', auth, async (req, res) => {
     const { page = 1, limit = 10 } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    const exports = await GeoJSONExport.find({ 
+    const exports = await GeoJSONExport.find({
       user: req.user._id,
       status: { $ne: 'expired' }
     })
@@ -104,7 +104,7 @@ router.get('/my-exports', auth, async (req, res) => {
       .skip(skip)
       .limit(parseInt(limit));
 
-    const total = await GeoJSONExport.countDocuments({ 
+    const total = await GeoJSONExport.countDocuments({
       user: req.user._id,
       status: { $ne: 'expired' }
     });
