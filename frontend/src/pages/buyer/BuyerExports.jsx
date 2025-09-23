@@ -45,7 +45,19 @@ export default function BuyerExports() {
   };
 
   const handleDownload = async (id) => {
-    window.open(`/api/geojson/download/${id}`, '_blank');
+    try {
+      const blob = await geoJsonService.downloadExport(id);
+      const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/geo+json' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `export_${id}.geojson`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setError('Failed to download GeoJSON file.');
+    }
   };
 
   return (
