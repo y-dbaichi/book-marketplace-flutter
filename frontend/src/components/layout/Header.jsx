@@ -1,4 +1,4 @@
-import { Navbar, Nav, NavDropdown, Container } from 'react-bootstrap';
+import { Navbar, Nav, Container } from 'react-bootstrap';
 import { useAuth } from '../../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../common/Button';
@@ -38,54 +38,26 @@ export default function Header() {
               <>
                 {user?.userType === 'buyer' ? (
                   <>
-                    <NavDropdown
-                      title={
-                        <span className="nav-dropdown-title">
-                          <i className="bi bi-grid-3x3-gap me-2"></i>
-                          Business
-                        </span>
-                      }
-                      id="buyer-dropdown"
-                      className="nav-dropdown-enhanced"
-                    >
-                      <NavDropdown.Item as={Link} to="/buyer/dashboard" className="nav-dropdown-item">
-                        <i className="bi bi-speedometer2 me-2 text-primary"></i>
-                        <div>
-                          <div className="fw-semibold">Dashboard</div>
-                          <small className="text-muted">Business overview & KPIs</small>
-                        </div>
-                      </NavDropdown.Item>
-                      <NavDropdown.Divider />
-                      <NavDropdown.Item as={Link} to="/buyer/books" className="nav-dropdown-item">
-                        <i className="bi bi-book me-2 text-success"></i>
-                        <div>
-                          <div className="fw-semibold">My Books</div>
-                          <small className="text-muted">Manage inventory</small>
-                        </div>
-                      </NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/buyer/orders" className="nav-dropdown-item">
-                        <i className="bi bi-cart-check me-2 text-info"></i>
-                        <div>
-                          <div className="fw-semibold">Orders</div>
-                          <small className="text-muted">Customer orders</small>
-                        </div>
-                      </NavDropdown.Item>
-                      <NavDropdown.Divider />
-                      <NavDropdown.Item as={Link} to="/buyer/clients" className="nav-dropdown-item">
-                        <i className="bi bi-people me-2 text-warning"></i>
-                        <div>
-                          <div className="fw-semibold">My Clients</div>
-                          <small className="text-muted">Customer locations</small>
-                        </div>
-                      </NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/buyer/exports" className="nav-dropdown-item">
-                        <i className="bi bi-download me-2 text-danger"></i>
-                        <div>
-                          <div className="fw-semibold">Mobile Export</div>
-                          <small className="text-muted">GeoJSON for Flutter</small>
-                        </div>
-                      </NavDropdown.Item>
-                    </NavDropdown>
+                    <Nav.Link as={Link} to="/buyer/dashboard" className="nav-link-enhanced">
+                      <i className="bi bi-speedometer2 me-2"></i>
+                      Dashboard
+                    </Nav.Link>
+                    <Nav.Link as={Link} to="/buyer/books" className="nav-link-enhanced">
+                      <i className="bi bi-book me-2"></i>
+                      My Books
+                    </Nav.Link>
+                    <Nav.Link as={Link} to="/buyer/orders" className="nav-link-enhanced">
+                      <i className="bi bi-cart-check me-2"></i>
+                      Orders
+                    </Nav.Link>
+                    <Nav.Link as={Link} to="/buyer/clients" className="nav-link-enhanced">
+                      <i className="bi bi-people me-2"></i>
+                      My Clients
+                    </Nav.Link>
+                    <Nav.Link as={Link} to="/buyer/exports" className="nav-link-enhanced">
+                      <i className="bi bi-download me-2"></i>
+                      Mobile Export
+                    </Nav.Link>
                   </>
                 ) : (
                   <>
@@ -93,31 +65,14 @@ export default function Header() {
                       <i className="bi bi-shop me-2"></i>
                       Marketplace
                     </Nav.Link>
-                    <NavDropdown
-                      title={
-                        <span className="nav-dropdown-title">
-                          <i className="bi bi-person-circle me-2"></i>
-                          My Account
-                        </span>
-                      }
-                      id="customer-dropdown"
-                      className="nav-dropdown-enhanced"
-                    >
-                      <NavDropdown.Item as={Link} to="/customer/orders" className="nav-dropdown-item">
-                        <i className="bi bi-bag-check me-2 text-primary"></i>
-                        <div>
-                          <div className="fw-semibold">My Orders</div>
-                          <small className="text-muted">Track order progress</small>
-                        </div>
-                      </NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/customer/suppliers" className="nav-dropdown-item">
-                        <i className="bi bi-shop me-2 text-success"></i>
-                        <div>
-                          <div className="fw-semibold">My Suppliers</div>
-                          <small className="text-muted">Trusted book sellers</small>
-                        </div>
-                      </NavDropdown.Item>
-                    </NavDropdown>
+                    <Nav.Link as={Link} to="/customer/orders" className="nav-link-enhanced">
+                      <i className="bi bi-bag-check me-2"></i>
+                      My Orders
+                    </Nav.Link>
+                    <Nav.Link as={Link} to="/customer/suppliers" className="nav-link-enhanced">
+                      <i className="bi bi-shop me-2"></i>
+                      My Suppliers
+                    </Nav.Link>
                   </>
                 )}
               </>
@@ -131,26 +86,16 @@ export default function Header() {
 
           <Nav>
             {isAuthenticated ? (
-              <NavDropdown
-                title={
-                  <span>
-                    <i className="bi bi-person-circle me-1"></i>
-                    {getUserDisplayName()}
-                  </span>
-                }
-                id="user-dropdown"
-                align="end"
-              >
-                <NavDropdown.Item as={Link} to="/profile">
-                  <i className="bi bi-gear me-2"></i>
-                  Profile Settings
-                </NavDropdown.Item>
-                <NavDropdown.Divider />
-                <NavDropdown.Item onClick={handleLogout}>
+              <>
+                <Nav.Link as={Link} to="/profile" className="nav-link-enhanced">
+                  <i className="bi bi-person-circle me-2"></i>
+                  {getUserDisplayName()}
+                </Nav.Link>
+                <Nav.Link onClick={handleLogout} className="nav-link-enhanced">
                   <i className="bi bi-box-arrow-right me-2"></i>
                   Sign Out
-                </NavDropdown.Item>
-              </NavDropdown>
+                </Nav.Link>
+              </>
             ) : (
               <div className="d-flex gap-2">
                 <Link to="/login">
