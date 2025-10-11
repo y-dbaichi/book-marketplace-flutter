@@ -199,10 +199,10 @@ class _TourneePageState extends State<TourneePage> {
 
         // Update route info
         if (distance != null && duration != null) {
-          final distanceKm = (distance / 1000).toStringAsFixed(1);
+          final distanceKm = distance.toStringAsFixed(1);
           final durationMin = (duration / 60).toStringAsFixed(0);
           setState(() {
-            _routeInfo = 'Distance: ${distanceKm}km - Durée: ${durationMin}min';
+            _routeInfo = 'Distance: ${distanceKm} Km - Durée: ${durationMin}min';
           });
         }
 

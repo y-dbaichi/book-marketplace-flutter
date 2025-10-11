@@ -1,0 +1,40 @@
+Here are all the Flutter app files in your project:
+
+## Core Files:
+- pubspec.yaml - Project dependencies and configuration
+- pubspec.lock - Locked dependency versions
+- lib/main.dart - Main application entry point
+
+## Pages/Dart Files:
+- lib/pages/home_page.dart - Main dashboard page
+- lib/pages/add_point_map_page.dart - Map-based point addition page
+- lib/pages/tour_selection_page.dart - Tour planning page
+- lib/pages/tournee_page.dart - Route visualization page
+
+## Models:
+- lib/models/point_de_vente.dart - Data model for sales points
+
+## Services:
+- lib/services/storage_service.dart - Local data persistence
+- lib/services/route_service.dart - Route calculation and optimization
+- lib/services/geocoding_service.dart - Address and coordinate conversion
+- lib/services/sample_points_service.dart - Sample data sets
+
+## Configuration Files:
+- analysis_options.yaml - Code analysis rules
+- .metadata - Project metadata
+
+## Root Files:
+- README.md - Project documentation
+- .gitignore - Git ignore patterns
+- package.json - Node.js dependencies (if any)
+- package-lock.json - Node.js locked dependencies (if any)
+
+## Directories:
+- lib/ - Contains all Dart source code
+- assets/ - Image and other asset files (if any exist)
+- android/ - Android-specific build files
+- ios/ - iOS-specific build files
+- build/ - Compiled output (if exists)
+
+These are the core Flutter project files you would share with ChatGPT to analyze your application.

@@ -1,0 +1,26 @@
+Here are the core Flutter files for sharing with ChatGPT:
+
+## Essential Files (Must Include):
+1. pubspec.yaml - Dependencies, assets, and app configuration
+2. lib/main.dart - Application entry point and main widget
+3. lib/models/point_de_vente.dart - Data model
+4. lib/services/storage_service.dart - Data persistence
+5. lib/services/route_service.dart - Route optimization
+6. lib/services/geocoding_service.dart - Location services
+7. lib/services/sample_points_service.dart - Sample data
+
+## Page Files (UI Components):
+8. lib/pages/home_page.dart - Main dashboard
+9. lib/pages/add_point_map_page.dart - Map interface
+10. lib/pages/tour_selection_page.dart - Tour planning
+11. lib/pages/tournee_page.dart - Route visualization
+
+## Configuration:
+12. analysis_options.yaml - Code analysis settings
+
+## Project Structure:
+- lib/ directory contains all Dart source code
+- assets/ directory if it exists (for images, etc.)
+- android/ and ios/ for platform-specific code
+
+These 12 files contain all the essential logic of your Flutter app and would provide ChatGPT with complete understanding of your application architecture, functionality, and implementation details.
