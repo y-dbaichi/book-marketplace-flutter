@@ -18,7 +18,7 @@ export default function CustomerOrders() {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const response = await orderService.getCustomerOrders();
+      const response = await orderService.getBuyerOrders();
       setOrders(response.orders || []);
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -57,19 +57,21 @@ export default function CustomerOrders() {
     return texts[status] || status;
   };
 
-  // Create map points from orders for location view
+  // Create map points from orders for location view (seller locations)
   const orderLocations = orders
-    .filter(order => order.book?.buyer?.location)
+    .filter(order => order.sellerLocation?.coordinates && order.sellerLocation.coordinates.length === 2)
     .map(order => ({
       id: order._id,
-      name: order.book.buyer.location.name,
-      email: order.book.buyer.email,
-      phone: order.book.buyer.phone,
-      address: order.book.buyer.location.address,
-      latitude: order.book.buyer.location.coordinates.latitude,
-      longitude: order.book.buyer.location.coordinates.longitude,
+      name: order.seller?.profile?.firstName && order.seller?.profile?.lastName
+        ? `${order.seller.profile.firstName} ${order.seller.profile.lastName}`
+        : order.sellerLocation?.name || 'Seller',
+      email: order.seller?.email || 'N/A',
+      phone: order.seller?.phone || 'N/A',
+      address: order.sellerLocation?.address || 'N/A',
+      latitude: order.sellerLocation.coordinates[1], // GeoJSON format: [lng, lat]
+      longitude: order.sellerLocation.coordinates[0],
       status: order.status,
-      bookTitle: order.book.title,
+      bookTitle: order.book?.title || 'N/A',
       totalPrice: order.totalPrice,
       orderDate: order.createdAt
     }));
@@ -157,7 +159,7 @@ export default function CustomerOrders() {
                         <div className="d-flex justify-content-between mb-2">
                           <span className="text-muted">Delivery To:</span>
                           <span className="text-end" style={{ maxWidth: '60%' }}>
-                            {order.customerLocation?.address || 'N/A'}
+                            {order.buyerLocation?.address || order.location?.address || 'N/A'}
                           </span>
                         </div>
                       </div>
@@ -169,26 +171,30 @@ export default function CustomerOrders() {
                         </h6>
                         <div className="bg-light p-3 rounded">
                           <div className="mb-1">
-                            <strong>{order.book?.buyer?.location?.name || 'Book Seller'}</strong>
+                            <strong>
+                              {order.seller?.profile?.firstName && order.seller?.profile?.lastName
+                                ? `${order.seller.profile.firstName} ${order.seller.profile.lastName}`
+                                : order.sellerLocation?.name || 'Book Seller'}
+                            </strong>
                           </div>
                           <div className="mb-1">
                             <i className="bi bi-geo-alt me-1"></i>
-                            <small>{order.book?.buyer?.location?.address || 'N/A'}</small>
+                            <small>{order.sellerLocation?.address || 'N/A'}</small>
                           </div>
-                          {order.book?.buyer?.phone && (
+                          {order.seller?.phone && (
                             <div>
                               <i className="bi bi-telephone me-1"></i>
-                              <small>{order.book?.buyer?.phone}</small>
+                              <small>{order.seller?.phone}</small>
                             </div>
                           )}
                         </div>
                       </div>
 
-                      {order.customerNotes && (
+                      {order.buyerNotes && (
                         <div className="mt-3">
                           <small className="text-muted">
                             <i className="bi bi-chat-left-text me-1"></i>
-                            Note: {order.customerNotes}
+                            Note: {order.buyerNotes}
                           </small>
                         </div>
                       )}

@@ -20,7 +20,7 @@ export default function Header() {
   };
 
   const getUserRole = () => {
-    return user?.userType === 'buyer' ? 'Seller' : 'Customer';
+    return user?.userType === 'buyer' ? 'Customer' : 'Seller';
   };
 
   return (
@@ -36,7 +36,7 @@ export default function Header() {
           <Nav className="me-auto">
             {isAuthenticated ? (
               <>
-                {user?.userType === 'buyer' ? (
+                {user?.userType === 'seller' ? (
                   <>
                     <Nav.Link as={Link} to="/buyer/dashboard" className="nav-link-enhanced">
                       <i className="bi bi-speedometer2 me-2"></i>

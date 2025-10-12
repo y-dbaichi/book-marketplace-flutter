@@ -130,6 +130,14 @@ body {
   color: #667eea;
 }
 
+.btn-outline-primary:hover {
+  background: var(--primary-gradient);
+  color: white !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  border: 2px solid transparent;
+}
+
 /* Enhanced Form Controls */
 .form-control,
 .form-select {

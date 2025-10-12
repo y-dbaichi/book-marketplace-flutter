@@ -362,7 +362,7 @@ export default function MarketplacePage() {
                         onClick={() => handleFindSuppliers(book)}
                       >
                         <i className="bi bi-geo-alt me-1"></i>
-                        Find Suppliers
+                        Find Supplier
                       </Button>
                       <Button
                         variant={book.quantity === 0 ? 'outline' : 'primary'}

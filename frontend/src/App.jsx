@@ -124,7 +124,7 @@ function AppRoutes() {
                         isAuthenticated ? (
                             user?.userType === 'seller' ?
                                 <Navigate to="/buyer/dashboard" replace /> :
-                                <Navigate to="/customer/orders" replace />
+                                <Navigate to="/marketplace" replace />
                         ) : (
                             <LandingPage />
                         )
