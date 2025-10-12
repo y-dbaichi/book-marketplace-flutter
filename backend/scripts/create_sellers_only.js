@@ -12,7 +12,7 @@ async function createSellers() {
     const seller1 = new User({
       email: 'seller1@gmail.com',
       password: 'aaaaaa',
-      userType: 'buyer',
+      userType: 'seller',
       displayName: 'Ahmed Books',
       phone: '+212600000001',
       profile: {
@@ -41,7 +41,7 @@ async function createSellers() {
     const seller2 = new User({
       email: 'seller2@gmail.com',
       password: 'aaaaaa',
-      userType: 'buyer',
+      userType: 'seller',
       displayName: 'Fatima Library',
       phone: '+212600000002',
       profile: {

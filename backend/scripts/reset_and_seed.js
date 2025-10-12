@@ -26,7 +26,7 @@ async function resetAndSeed() {
     const seller1 = await User.create({
       email: 'seller1@gmail.com',
       password: hashedPassword,
-      userType: 'buyer',
+      userType: 'seller',
       displayName: 'Ahmed Books',
       phone: '+212600000001',
       profile: {
@@ -46,7 +46,7 @@ async function resetAndSeed() {
     const seller2 = await User.create({
       email: 'seller2@gmail.com',
       password: hashedPassword,
-      userType: 'buyer',
+      userType: 'seller',
       displayName: 'Fatima Library',
       phone: '+212600000002',
       profile: {
@@ -70,7 +70,7 @@ async function resetAndSeed() {
     const buyer1 = await User.create({
       email: 'buyer1@gmail.com',
       password: hashedPassword,
-      userType: 'customer',
+      userType: 'buyer',
       displayName: 'Youssef Hassan',
       phone: '+212600000003',
       profile: {
@@ -90,7 +90,7 @@ async function resetAndSeed() {
     const buyer2 = await User.create({
       email: 'buyer2@gmail.com',
       password: hashedPassword,
-      userType: 'customer',
+      userType: 'buyer',
       displayName: 'Khadija Alami',
       phone: '+212600000004',
       profile: {
@@ -133,7 +133,7 @@ async function resetAndSeed() {
         quality: 'excellent',
         category: 'Fiction',
         status: 'available',
-        buyer: seller1._id
+        seller: seller1._id
       },
       {
         title: 'Sapiens',
@@ -144,7 +144,7 @@ async function resetAndSeed() {
         quality: 'good',
         category: 'History',
         status: 'available',
-        buyer: seller1._id
+        seller: seller1._id
       },
       {
         title: 'Atomic Habits',
@@ -155,7 +155,7 @@ async function resetAndSeed() {
         quality: 'excellent',
         category: 'Self-Help',
         status: 'available',
-        buyer: seller1._id
+        seller: seller1._id
       }
     ];
     
@@ -169,7 +169,7 @@ async function resetAndSeed() {
         quality: 'good',
         category: 'Fiction',
         status: 'available',
-        buyer: seller2._id
+        seller: seller2._id
       },
       {
         title: 'Educated',
@@ -180,7 +180,7 @@ async function resetAndSeed() {
         quality: 'excellent',
         category: 'Biography',
         status: 'available',
-        buyer: seller2._id
+        seller: seller2._id
       },
       {
         title: 'Think and Grow Rich',
@@ -191,7 +191,7 @@ async function resetAndSeed() {
         quality: 'good',
         category: 'Business',
         status: 'available',
-        buyer: seller2._id
+        seller: seller2._id
       }
     ];
     

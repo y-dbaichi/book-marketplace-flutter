@@ -30,8 +30,8 @@ async function run() {
     await mongoose.connect(process.env.MONGODB_URI);
 
     // Sellers
-    const seller1 = await User.findOne({ email: 'seller1@gmail.com', userType: 'buyer' }).lean();
-    const seller2 = await User.findOne({ email: 'seller2@gmail.com', userType: 'buyer' }).lean();
+    const seller1 = await User.findOne({ email: 'seller1@gmail.com', userType: 'seller' }).lean();
+    const seller2 = await User.findOne({ email: 'seller2@gmail.com', userType: 'seller' }).lean();
     if (!seller1 || !seller2) {
       console.error('❌ Sellers not found. Create sellers first.');
       process.exit(1);

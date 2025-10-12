@@ -11,18 +11,18 @@ async function run() {
     // Fetch sellers
     const emails = ['seller1@gmail.com', 'seller2@gmail.com'];
     const [seller1, seller2] = await Promise.all(
-      emails.map(e => User.findOne({ email: e, userType: 'buyer' }))
+      emails.map(e => User.findOne({ email: e, userType: 'seller' }))
     );
 
     if (!seller1 || !seller2) {
       console.error('❌ Missing seller accounts. Create sellers first.');
-      console.error('   Expected: seller1@gmail.com & seller2@gmail.com with userType="buyer"');
+      console.error('   Expected: seller1@gmail.com & seller2@gmail.com with userType="seller"');
       process.exit(1);
     }
 
     // Wipe old books from these sellers to avoid duplicates
     console.log('🧹 Removing existing listings from these sellers...');
-    const delRes = await Book.deleteMany({ buyer: { $in: [seller1._id, seller2._id] } });
+    const delRes = await Book.deleteMany({ seller: { $in: [seller1._id, seller2._id] } });
     console.log(`   Deleted: ${delRes.deletedCount} book(s)`);
 
     // New listings
@@ -36,7 +36,7 @@ async function run() {
         quality: 'excellent',
         category: 'Fiction',
         status: 'available',
-        buyer: seller1._id
+        seller: seller1._id
       },
       {
         title: 'Sapiens',
@@ -47,7 +47,7 @@ async function run() {
         quality: 'good',
         category: 'History',
         status: 'available',
-        buyer: seller1._id
+        seller: seller1._id
       },
       {
         title: 'Atomic Habits',
@@ -58,7 +58,7 @@ async function run() {
         quality: 'excellent',
         category: 'Self-Help',
         status: 'available',
-        buyer: seller1._id
+        seller: seller1._id
       }
     ];
 
@@ -72,7 +72,7 @@ async function run() {
         quality: 'good',
         category: 'Fiction',
         status: 'available',
-        buyer: seller2._id
+        seller: seller2._id
       },
       {
         title: 'Educated',
@@ -83,7 +83,7 @@ async function run() {
         quality: 'excellent',
         category: 'Biography',
         status: 'available',
-        buyer: seller2._id
+        seller: seller2._id
       },
       {
         title: 'Think and Grow Rich',
@@ -94,7 +94,7 @@ async function run() {
         quality: 'good',
         category: 'Business',
         status: 'available',
-        buyer: seller2._id
+        seller: seller2._id
       }
     ];
 
@@ -105,8 +105,8 @@ async function run() {
 
     // Summary
     const counts = await Book.aggregate([
-      { $match: { buyer: { $in: [seller1._id, seller2._id] } } },
-      { $group: { _id: '$buyer', count: { $sum: 1 } } }
+      { $match: { seller: { $in: [seller1._id, seller2._id] } } },
+      { $group: { _id: '$seller', count: { $sum: 1 } } }
     ]);
 
     console.log('\n📊 Summary per seller:');
