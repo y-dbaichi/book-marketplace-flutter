@@ -21,12 +21,18 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"customer{{$timestamp}}@example.com\",\n  \"password\": \"password123\",\n  \"userType\": \"customer\",\n  \"phone\": \"+1234567890\",\n  \"profile\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\"\n  },\n  \"location\": {\n    \"name\": \"Home\",\n    \"coordinates\": {\n      \"latitude\": 40.7128,\n      \"longitude\": -74.0060\n    },\n    \"address\": \"123 Main St, New York, NY 10001\"\n  }\n}"
+							"raw": "{\n  \"email\": \"customer{{$timestamp}}@example.com\",\n  \"password\": \"aaaaaa\",\n  \"userType\": \"customer\",\n  \"phone\": \"+1234567890\",\n  \"profile\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\"\n  },\n  \"location\": {\n    \"name\": \"Home\",\n    \"coordinates\": {\n      \"latitude\": 40.7128,\n      \"longitude\": -74.0060\n    },\n    \"address\": \"123 Main St, New York, NY 10001\"\n  }\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/auth/register",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "auth", "register"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
 						}
 					},
 					"response": []
@@ -43,12 +49,18 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"buyer{{$timestamp}}@example.com\",\n  \"password\": \"password123\",\n  \"userType\": \"buyer\",\n  \"phone\": \"+1987654321\",\n  \"profile\": {\n    \"firstName\": \"Jane\",\n    \"lastName\": \"Smith\"\n  },\n  \"location\": {\n    \"name\": \"Bookstore\",\n    \"coordinates\": {\n      \"latitude\": 40.7589,\n      \"longitude\": -73.9851\n    },\n    \"address\": \"456 Broadway, New York, NY 10013\"\n  }\n}"
+							"raw": "{\n  \"email\": \"buyer{{$timestamp}}@example.com\",\n  \"password\": \"aaaaaa\",\n  \"userType\": \"buyer\",\n  \"phone\": \"+1987654321\",\n  \"profile\": {\n    \"firstName\": \"Jane\",\n    \"lastName\": \"Smith\"\n  },\n  \"location\": {\n    \"name\": \"Bookstore\",\n    \"coordinates\": {\n      \"latitude\": 40.7589,\n      \"longitude\": -73.9851\n    },\n    \"address\": \"456 Broadway, New York, NY 10013\"\n  }\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/auth/register",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "auth", "register"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
 						}
 					},
 					"response": []
@@ -65,12 +77,18 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"password123\"\n}"
+							"raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"aaaaaa\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/auth/login",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "auth", "login"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
 						}
 					},
 					"response": []
@@ -87,12 +105,18 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"{{buyerEmail}}\",\n  \"password\": \"password123\"\n}"
+							"raw": "{\n  \"email\": \"{{buyerEmail}}\",\n  \"password\": \"aaaaaa\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/auth/login",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "auth", "login"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
 						}
 					},
 					"response": []
@@ -109,8 +133,14 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/auth/me",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "auth", "me"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"me"
+							]
 						}
 					},
 					"response": []
@@ -140,8 +170,13 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/books",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "books"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"books"
+							]
 						}
 					},
 					"response": []
@@ -153,8 +188,13 @@
 						"header": [],
 						"url": {
 							"raw": "{{baseUrl}}/api/books",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "books"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"books"
+							]
 						}
 					},
 					"response": []
@@ -166,8 +206,14 @@
 						"header": [],
 						"url": {
 							"raw": "{{baseUrl}}/api/books/{{bookId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "books", "{{bookId}}"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"books",
+								"{{bookId}}"
+							]
 						}
 					},
 					"response": []
@@ -184,8 +230,15 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/books/my/listings",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "books", "my", "listings"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"books",
+								"my",
+								"listings"
+							]
 						}
 					},
 					"response": []
@@ -210,8 +263,14 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/books/{{bookId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "books", "{{bookId}}"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"books",
+								"{{bookId}}"
+							]
 						}
 					},
 					"response": []
@@ -228,8 +287,14 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/books/{{bookId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "books", "{{bookId}}"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"books",
+								"{{bookId}}"
+							]
 						}
 					},
 					"response": []
@@ -259,8 +324,13 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/orders",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "orders"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							]
 						}
 					},
 					"response": []
@@ -277,8 +347,15 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/orders/my/customer",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "orders", "my", "customer"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"my",
+								"customer"
+							]
 						}
 					},
 					"response": []
@@ -295,8 +372,15 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/orders/my/buyer",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "orders", "my", "buyer"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"my",
+								"buyer"
+							]
 						}
 					},
 					"response": []
@@ -321,8 +405,15 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/orders/{{orderId}}/status",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "orders", "{{orderId}}", "status"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"{{orderId}}",
+								"status"
+							]
 						}
 					},
 					"response": []
@@ -347,8 +438,15 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/orders/{{orderId}}/reject",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "orders", "{{orderId}}", "reject"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"{{orderId}}",
+								"reject"
+							]
 						}
 					},
 					"response": []
@@ -373,8 +471,15 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/orders/{{orderId}}/cancel",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "orders", "{{orderId}}", "cancel"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"{{orderId}}",
+								"cancel"
+							]
 						}
 					},
 					"response": []
@@ -404,8 +509,14 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/geojson/generate",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "geojson", "generate"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"geojson",
+								"generate"
+							]
 						}
 					},
 					"response": []
@@ -422,8 +533,14 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/geojson/my-exports",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "geojson", "my-exports"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"geojson",
+								"my-exports"
+							]
 						}
 					},
 					"response": []
@@ -440,8 +557,15 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/geojson/download/{{exportId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "geojson", "download", "{{exportId}}"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"geojson",
+								"download",
+								"{{exportId}}"
+							]
 						}
 					},
 					"response": []
@@ -458,8 +582,15 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/geojson/preview/{{exportId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "geojson", "preview", "{{exportId}}"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"geojson",
+								"preview",
+								"{{exportId}}"
+							]
 						}
 					},
 					"response": []
@@ -476,8 +607,14 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/geojson/{{exportId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "geojson", "{{exportId}}"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"geojson",
+								"{{exportId}}"
+							]
 						}
 					},
 					"response": []
@@ -507,8 +644,14 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/auth/profile",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "auth", "profile"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"profile"
+							]
 						}
 					},
 					"response": []
@@ -541,8 +684,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/api/books",
-									"host": ["{{baseUrl}}"],
-									"path": ["api", "books"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"books"
+									]
 								}
 							},
 							"response": []
@@ -567,8 +715,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/api/orders",
-									"host": ["{{baseUrl}}"],
-									"path": ["api", "orders"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"orders"
+									]
 								}
 							},
 							"response": []
@@ -593,8 +746,15 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/api/orders/{{orderId}}/status",
-									"host": ["{{baseUrl}}"],
-									"path": ["api", "orders", "{{orderId}}", "status"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"orders",
+										"{{orderId}}",
+										"status"
+									]
 								}
 							},
 							"response": []
@@ -619,8 +779,15 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/api/orders/{{orderId}}/status",
-									"host": ["{{baseUrl}}"],
-									"path": ["api", "orders", "{{orderId}}", "status"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"orders",
+										"{{orderId}}",
+										"status"
+									]
 								}
 							},
 							"response": []
@@ -645,8 +812,15 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/api/orders/{{orderId}}/status",
-									"host": ["{{baseUrl}}"],
-									"path": ["api", "orders", "{{orderId}}", "status"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"orders",
+										"{{orderId}}",
+										"status"
+									]
 								}
 							},
 							"response": []
@@ -671,8 +845,15 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/api/orders/{{orderId}}/status",
-									"host": ["{{baseUrl}}"],
-									"path": ["api", "orders", "{{orderId}}", "status"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"orders",
+										"{{orderId}}",
+										"status"
+									]
 								}
 							},
 							"response": []
@@ -702,8 +883,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/api/books",
-									"host": ["{{baseUrl}}"],
-									"path": ["api", "books"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"books"
+									]
 								}
 							},
 							"response": []
@@ -728,8 +914,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/api/orders",
-									"host": ["{{baseUrl}}"],
-									"path": ["api", "orders"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"orders"
+									]
 								}
 							},
 							"response": []
@@ -754,8 +945,15 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/api/orders/{{orderId}}/reject",
-									"host": ["{{baseUrl}}"],
-									"path": ["api", "orders", "{{orderId}}", "reject"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"orders",
+										"{{orderId}}",
+										"reject"
+									]
 								}
 							},
 							"response": []
@@ -785,8 +983,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/api/books",
-									"host": ["{{baseUrl}}"],
-									"path": ["api", "books"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"books"
+									]
 								}
 							},
 							"response": []
@@ -811,8 +1014,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/api/orders",
-									"host": ["{{baseUrl}}"],
-									"path": ["api", "orders"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"orders"
+									]
 								}
 							},
 							"response": []
@@ -837,8 +1045,15 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/api/orders/{{orderId}}/cancel",
-									"host": ["{{baseUrl}}"],
-									"path": ["api", "orders", "{{orderId}}", "cancel"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"orders",
+										"{{orderId}}",
+										"cancel"
+									]
 								}
 							},
 							"response": []

@@ -8,7 +8,7 @@ echo "===================================="
 echo "🔑 Logging in as Buyer..."
 BUYER_LOGIN=$(curl -s -X POST "$BASE_URL/api/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email": "buyer@test.com", "password": "password123"}')
+  -d '{"email": "ham@gmail.com", "password": "aaaaaa"}')
 
 BUYER_TOKEN=$(echo "$BUYER_LOGIN" | jq -r '.token')
 echo "✅ Buyer logged in successfully!"
@@ -17,7 +17,7 @@ echo "✅ Buyer logged in successfully!"
 echo "🔑 Logging in as Customer..."
 CUSTOMER_LOGIN=$(curl -s -X POST "$BASE_URL/api/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email": "customer@test.com", "password": "password123"}')
+  -d '{"email": "customer@test.com", "password": "aaaaaa"}')
 
 CUSTOMER_TOKEN=$(echo "$CUSTOMER_LOGIN" | jq -r '.token')
 echo "✅ Customer logged in successfully!"

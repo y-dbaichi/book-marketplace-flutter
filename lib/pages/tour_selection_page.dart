@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/point_de_vente.dart';
-import '../services/sample_points_service.dart';
+import '../pages/import_geojson_page.dart';
 import 'tournee_page.dart';
 
 class TourSelectionPage extends StatefulWidget {
@@ -15,7 +15,6 @@ class TourSelectionPage extends StatefulWidget {
 class _TourSelectionPageState extends State<TourSelectionPage> {
   List<PointDeVente> _allPoints = [];
   Set<int> _selectedPointIds = {};
-  bool _isLoading = false;
 
   @override
   void initState() {
@@ -28,81 +27,22 @@ class _TourSelectionPageState extends State<TourSelectionPage> {
         .toSet();
   }
 
-  Future<void> _showUploadDialog() async {
-    final sampleSets = SamplePointsService.getAllSampleSets();
+  Future<void> _importFromBackend() async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const ImportGeoJSONPage()),
+    );
     
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.cloud_upload, color: Colors.indigo),
-            SizedBox(width: 8),
-            Text('Ajouter Points Sample'),
-          ],
+    if (result == true) {
+      // Reload points after import
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ Points importés avec succès! Retournez à la page d\'accueil pour les voir.'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 3),
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: sampleSets.entries.map((entry) {
-            return Card(
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Colors.indigo[100],
-                  child: Text(
-                    '${entry.value.length}',
-                    style: TextStyle(color: Colors.indigo[800], fontWeight: FontWeight.bold),
-                  ),
-                ),
-                title: Text(entry.key),
-                subtitle: Text('${entry.value.length} points de vente'),
-                trailing: const Icon(Icons.add, color: Colors.green),
-                onTap: () {
-                  Navigator.pop(context);
-                  _addSamplePoints(entry.key, entry.value);
-                },
-              ),
-            );
-          }).toList(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _addSamplePoints(String setName, List<PointDeVente> points) {
-    setState(() {
-      // Add unique IDs to sample points
-      int maxId = _allPoints.isEmpty ? 0 : _allPoints.map((p) => p.id ?? 0).reduce((a, b) => a > b ? a : b);
-      
-      for (int i = 0; i < points.length; i++) {
-        final newPoint = PointDeVente(
-          id: maxId + i + 1,
-          nom: points[i].nom,
-          adresse: points[i].adresse,
-          contact: points[i].contact,
-          telephone: points[i].telephone,
-          capaciteStockage: points[i].capaciteStockage,
-          latitude: points[i].latitude,
-          longitude: points[i].longitude,
-          dateCreation: points[i].dateCreation,
-        );
-        _allPoints.add(newPoint);
-        // Auto-select new points
-        _selectedPointIds.add(newPoint.id!);
-      }
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('✅ ${points.length} points de $setName ajoutés'),
-        backgroundColor: Colors.green,
-      ),
-    );
+      );
+    }
   }
 
   void _startTour() {
@@ -143,7 +83,7 @@ class _TourSelectionPageState extends State<TourSelectionPage> {
       ),
       body: Column(
         children: [
-          // Stats and Upload Section
+          // Stats and Import Section
           Container(
             margin: const EdgeInsets.all(16),
             padding: const EdgeInsets.all(20),
@@ -204,9 +144,9 @@ class _TourSelectionPageState extends State<TourSelectionPage> {
                   children: [
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: _showUploadDialog,
-                        icon: const Icon(Icons.cloud_upload),
-                        label: const Text('Upload Points'),
+                        onPressed: _importFromBackend,
+                        icon: const Icon(Icons.cloud_download),
+                        label: const Text('Importer'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: Colors.indigo[600],
@@ -265,8 +205,17 @@ class _TourSelectionPageState extends State<TourSelectionPage> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Utilisez "Upload Points" pour ajouter des points',
+                          'Importez des points depuis le backend',
                           style: TextStyle(color: Colors.grey[500]),
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton.icon(
+                          onPressed: _importFromBackend,
+                          icon: const Icon(Icons.cloud_download),
+                          label: const Text('Importer maintenant'),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          ),
                         ),
                       ],
                     ),
@@ -277,7 +226,6 @@ class _TourSelectionPageState extends State<TourSelectionPage> {
                     itemBuilder: (context, index) {
                       final point = _allPoints[index];
                       final isSelected = _selectedPointIds.contains(point.id);
-                      final isExisting = widget.existingPoints.any((p) => p.id == point.id);
                       
                       return Container(
                         margin: const EdgeInsets.only(bottom: 12),
@@ -337,50 +285,12 @@ class _TourSelectionPageState extends State<TourSelectionPage> {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                point.nom,
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16,
-                                                ),
-                                              ),
-                                            ),
-                                            if (isExisting)
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.blue[100],
-                                                  borderRadius: BorderRadius.circular(8),
-                                                ),
-                                                child: Text(
-                                                  'Manuel',
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                    color: Colors.blue[800],
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              )
-                                            else
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.green[100],
-                                                  borderRadius: BorderRadius.circular(8),
-                                                ),
-                                                child: Text(
-                                                  'Sample',
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                    color: Colors.green[800],
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ),
-                                          ],
+                                        Text(
+                                          point.nom,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
@@ -397,7 +307,7 @@ class _TourSelectionPageState extends State<TourSelectionPage> {
                                           children: [
                                             _buildInfoChip(Icons.person, point.contact),
                                             const SizedBox(width: 8),
-                                            _buildInfoChip(Icons.inventory, '${point.capaciteStockage}'),
+                                            _buildInfoChip(Icons.phone, point.telephone),
                                           ],
                                         ),
                                       ],
@@ -436,6 +346,8 @@ class _TourSelectionPageState extends State<TourSelectionPage> {
               color: Colors.grey[700],
               fontWeight: FontWeight.w500,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

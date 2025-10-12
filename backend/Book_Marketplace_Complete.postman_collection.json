@@ -54,7 +54,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"email\": \"{{buyerEmail}}\",\n  \"password\": \"password123\",\n  \"userType\": \"buyer\",\n  \"phone\": \"+212 6 12 34 56 78\",\n  \"location\": {\n    \"name\": \"Librairie Test Casablanca\",\n    \"coordinates\": {\n      \"latitude\": 33.5731,\n      \"longitude\": -7.5898\n    },\n    \"address\": \"Boulevard Mohammed V, Casablanca\"\n  },\n  \"profile\": {\n    \"firstName\": \"Ahmed\",\n    \"lastName\": \"Libraire\",\n    \"bio\": \"Spécialiste en livres académiques\"\n  }\n}"
+					"raw": "{\n  \"email\": \"{{buyerEmail}}\",\n  \"password\": \"aaaaaa\",\n  \"userType\": \"buyer\",\n  \"phone\": \"+212 6 12 34 56 78\",\n  \"location\": {\n    \"name\": \"Librairie Test Casablanca\",\n    \"coordinates\": {\n      \"latitude\": 33.5731,\n      \"longitude\": -7.5898\n    },\n    \"address\": \"Boulevard Mohammed V, Casablanca\"\n  },\n  \"profile\": {\n    \"firstName\": \"Ahmed\",\n    \"lastName\": \"Libraire\",\n    \"bio\": \"Spécialiste en livres académiques\"\n  }\n}"
 				},
 				"url": "http://localhost:5001/api/auth/register"
 			}
@@ -93,7 +93,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"email\": \"{{buyerEmail}}\",\n  \"password\": \"password123\"\n}"
+					"raw": "{\n  \"email\": \"{{buyerEmail}}\",\n  \"password\": \"aaaaaa\"\n}"
 				},
 				"url": "http://localhost:5001/api/auth/login"
 			}
@@ -240,7 +240,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"password123\",\n  \"userType\": \"customer\",\n  \"phone\": \"+212 6 87 65 43 21\",\n  \"location\": {\n    \"name\": \"Quartier Maarif\",\n    \"coordinates\": {\n      \"latitude\": 33.5731,\n      \"longitude\": -7.5898\n    },\n    \"address\": \"Rue Abdelkrim Diouri, Maarif, Casablanca\"\n  },\n  \"profile\": {\n    \"firstName\": \"Fatima\",\n    \"lastName\": \"Cliente\",\n    \"bio\": \"Étudiante en littérature française\"\n  }\n}"
+					"raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"aaaaaa\",\n  \"userType\": \"customer\",\n  \"phone\": \"+212 6 87 65 43 21\",\n  \"location\": {\n    \"name\": \"Quartier Maarif\",\n    \"coordinates\": {\n      \"latitude\": 33.5731,\n      \"longitude\": -7.5898\n    },\n    \"address\": \"Rue Abdelkrim Diouri, Maarif, Casablanca\"\n  },\n  \"profile\": {\n    \"firstName\": \"Fatima\",\n    \"lastName\": \"Cliente\",\n    \"bio\": \"Étudiante en littérature française\"\n  }\n}"
 				},
 				"url": "http://localhost:5001/api/auth/register"
 			}
@@ -278,7 +278,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"password123\"\n}"
+					"raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"aaaaaa\"\n}"
 				},
 				"url": "http://localhost:5001/api/auth/login"
 			}

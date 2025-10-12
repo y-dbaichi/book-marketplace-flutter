@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/storage_service.dart';
+import '../services/sample_points_service.dart';
 import '../services/auth_service.dart';
 import '../models/point_de_vente.dart';
 import 'add_point_map_page.dart';
@@ -69,6 +70,23 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _loadSamplePoints(String city) async {
+    final points = city == 'Casablanca' 
+        ? SamplePointsService.getCasablancaPoints() 
+        : SamplePointsService.getRabatPoints();
+    
+    for (var point in points) {
+      await _storageService.insertPointDeVente(point);
+    }
+    _loadPoints();
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${points.length} points chargés pour $city')),
+      );
+    }
+  }
+
   Future<void> _importFromBackend() async {
     final result = await Navigator.push<bool>(
       context,
@@ -132,10 +150,35 @@ class _HomePageState extends State<HomePage> {
             tooltip: 'Importer depuis le backend',
             onPressed: _importFromBackend,
           ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Déconnexion',
-            onPressed: _logout,
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              switch (value) {
+                case 'casablanca':
+                  _loadSamplePoints('Casablanca');
+                  break;
+                case 'rabat':
+                  _loadSamplePoints('Rabat');
+                  break;
+                case 'logout':
+                  _logout();
+                  break;
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'casablanca',
+                child: Text('📍 Exemples Casablanca'),
+              ),
+              const PopupMenuItem(
+                value: 'rabat',
+                child: Text('📍 Exemples Rabat'),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'logout',
+                child: Text('🚪 Déconnexion', style: TextStyle(color: Colors.red)),
+              ),
+            ],
           ),
         ],
       ),
@@ -153,7 +196,7 @@ class _HomePageState extends State<HomePage> {
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
-                      const Text('Importez des points depuis le backend'),
+                      const Text('Ajoutez des points ou importez depuis le backend'),
                       const SizedBox(height: 24),
                       ElevatedButton.icon(
                         onPressed: _importFromBackend,

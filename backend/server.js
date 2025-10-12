@@ -8,11 +8,18 @@ dotenv.config();
 
 const app = express();
 
+// CORS configuration for Flutter web
+app.use(cors({
+  origin: true, // Allow all origins in development
+  credentials: true
+}));
+
 // Middleware
 app.use(cors({
   origin: [
     'http://localhost:3000',
     'http://localhost:5173',
+    '*',
     process.env.FRONTEND_URL
   ].filter(Boolean),
   credentials: true

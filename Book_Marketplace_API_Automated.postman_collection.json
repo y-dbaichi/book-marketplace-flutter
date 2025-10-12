@@ -17,9 +17,14 @@
 						"url": {
 							"raw": "http://localhost:5001/api/health",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "5001",
-							"path": ["api", "health"]
+							"path": [
+								"api",
+								"health"
+							]
 						}
 					},
 					"response": []
@@ -67,14 +72,20 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"{{buyerEmail}}\",\n  \"password\": \"password123\",\n  \"userType\": \"buyer\",\n  \"phone\": \"+212 6 12 34 56 78\",\n  \"location\": {\n    \"name\": \"Librairie Test Casablanca\",\n    \"coordinates\": {\n      \"latitude\": 33.5731,\n      \"longitude\": -7.5898\n    },\n    \"address\": \"Boulevard Mohammed V, Casablanca\"\n  },\n  \"profile\": {\n    \"firstName\": \"Ahmed\",\n    \"lastName\": \"Libraire\",\n    \"bio\": \"Spécialiste en livres académiques\"\n  }\n}"
+							"raw": "{\n  \"email\": \"{{buyerEmail}}\",\n  \"password\": \"aaaaaa\",\n  \"userType\": \"buyer\",\n  \"phone\": \"+212 6 12 34 56 78\",\n  \"location\": {\n    \"name\": \"Librairie Test Casablanca\",\n    \"coordinates\": {\n      \"latitude\": 33.5731,\n      \"longitude\": -7.5898\n    },\n    \"address\": \"Boulevard Mohammed V, Casablanca\"\n  },\n  \"profile\": {\n    \"firstName\": \"Ahmed\",\n    \"lastName\": \"Libraire\",\n    \"bio\": \"Spécialiste en livres académiques\"\n  }\n}"
 						},
 						"url": {
 							"raw": "http://localhost:5001/api/auth/register",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "5001",
-							"path": ["api", "auth", "register"]
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
 						}
 					},
 					"response": []
@@ -114,14 +125,20 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"{{buyerEmail}}\",\n  \"password\": \"password123\"\n}"
+							"raw": "{\n  \"email\": \"{{buyerEmail}}\",\n  \"password\": \"aaaaaa\"\n}"
 						},
 						"url": {
 							"raw": "http://localhost:5001/api/auth/login",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "5001",
-							"path": ["api", "auth", "login"]
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
 						}
 					},
 					"response": []
@@ -168,14 +185,20 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"password123\",\n  \"userType\": \"customer\",\n  \"phone\": \"+212 6 87 65 43 21\",\n  \"location\": {\n    \"name\": \"Quartier Maarif\",\n    \"coordinates\": {\n      \"latitude\": 33.5731,\n      \"longitude\": -7.5898\n    },\n    \"address\": \"Rue Abdelkrim Diouri, Maarif, Casablanca\"\n  },\n  \"profile\": {\n    \"firstName\": \"Fatima\",\n    \"lastName\": \"Cliente\",\n    \"bio\": \"Étudiante en littérature française\"\n  }\n}"
+							"raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"aaaaaa\",\n  \"userType\": \"customer\",\n  \"phone\": \"+212 6 87 65 43 21\",\n  \"location\": {\n    \"name\": \"Quartier Maarif\",\n    \"coordinates\": {\n      \"latitude\": 33.5731,\n      \"longitude\": -7.5898\n    },\n    \"address\": \"Rue Abdelkrim Diouri, Maarif, Casablanca\"\n  },\n  \"profile\": {\n    \"firstName\": \"Fatima\",\n    \"lastName\": \"Cliente\",\n    \"bio\": \"Étudiante en littérature française\"\n  }\n}"
 						},
 						"url": {
 							"raw": "http://localhost:5001/api/auth/register",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "5001",
-							"path": ["api", "auth", "register"]
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
 						}
 					},
 					"response": []
@@ -214,14 +237,20 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"password123\"\n}"
+							"raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"aaaaaa\"\n}"
 						},
 						"url": {
 							"raw": "http://localhost:5001/api/auth/login",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "5001",
-							"path": ["api", "auth", "login"]
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
 						}
 					},
 					"response": []
@@ -263,9 +292,15 @@
 						"url": {
 							"raw": "http://localhost:5001/api/auth/me",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "5001",
-							"path": ["api", "auth", "me"]
+							"path": [
+								"api",
+								"auth",
+								"me"
+							]
 						}
 					},
 					"response": []
@@ -302,9 +337,15 @@
 						"url": {
 							"raw": "http://localhost:5001/api/auth/me",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "5001",
-							"path": ["api", "auth", "me"]
+							"path": [
+								"api",
+								"auth",
+								"me"
+							]
 						}
 					},
 					"response": []
@@ -359,9 +400,14 @@
 						"url": {
 							"raw": "http://localhost:5001/api/books",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "5001",
-							"path": ["api", "books"]
+							"path": [
+								"api",
+								"books"
+							]
 						}
 					},
 					"response": []
@@ -394,9 +440,14 @@
 						"url": {
 							"raw": "http://localhost:5001/api/books",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "5001",
-							"path": ["api", "books"]
+							"path": [
+								"api",
+								"books"
+							]
 						}
 					},
 					"response": []
@@ -434,9 +485,16 @@
 						"url": {
 							"raw": "http://localhost:5001/api/books/my/listings",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "5001",
-							"path": ["api", "books", "my", "listings"]
+							"path": [
+								"api",
+								"books",
+								"my",
+								"listings"
+							]
 						}
 					},
 					"response": []
@@ -491,9 +549,14 @@
 						"url": {
 							"raw": "http://localhost:5001/api/orders",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "5001",
-							"path": ["api", "orders"]
+							"path": [
+								"api",
+								"orders"
+							]
 						}
 					},
 					"response": []
@@ -531,9 +594,16 @@
 						"url": {
 							"raw": "http://localhost:5001/api/orders/my/customer",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "5001",
-							"path": ["api", "orders", "my", "customer"]
+							"path": [
+								"api",
+								"orders",
+								"my",
+								"customer"
+							]
 						}
 					},
 					"response": []
@@ -571,9 +641,16 @@
 						"url": {
 							"raw": "http://localhost:5001/api/orders/my/buyer",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "5001",
-							"path": ["api", "orders", "my", "buyer"]
+							"path": [
+								"api",
+								"orders",
+								"my",
+								"buyer"
+							]
 						}
 					},
 					"response": []
@@ -620,9 +697,16 @@
 						"url": {
 							"raw": "http://localhost:5001/api/orders/{{orderId}}/status",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "5001",
-							"path": ["api", "orders", "{{orderId}}", "status"]
+							"path": [
+								"api",
+								"orders",
+								"{{orderId}}",
+								"status"
+							]
 						}
 					},
 					"response": []
@@ -673,9 +757,16 @@
 						"url": {
 							"raw": "http://localhost:5001/api/orders/{{orderId}}/reject",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "5001",
-							"path": ["api", "orders", "{{orderId}}", "reject"]
+							"path": [
+								"api",
+								"orders",
+								"{{orderId}}",
+								"reject"
+							]
 						}
 					},
 					"response": []
@@ -726,9 +817,16 @@
 						"url": {
 							"raw": "http://localhost:5001/api/orders/{{orderId}}/cancel",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "5001",
-							"path": ["api", "orders", "{{orderId}}", "cancel"]
+							"path": [
+								"api",
+								"orders",
+								"{{orderId}}",
+								"cancel"
+							]
 						}
 					},
 					"response": []
@@ -782,9 +880,15 @@
 						"url": {
 							"raw": "http://localhost:5001/api/geojson/generate",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "5001",
-							"path": ["api", "geojson", "generate"]
+							"path": [
+								"api",
+								"geojson",
+								"generate"
+							]
 						}
 					},
 					"response": []
@@ -822,9 +926,15 @@
 						"url": {
 							"raw": "http://localhost:5001/api/geojson/my-exports",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "5001",
-							"path": ["api", "geojson", "my-exports"]
+							"path": [
+								"api",
+								"geojson",
+								"my-exports"
+							]
 						}
 					},
 					"response": []

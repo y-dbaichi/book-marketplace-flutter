@@ -41,8 +41,8 @@ print_test "Registering Buyer"
 BUYER_RESPONSE=$(curl -s -X POST "$BASE_URL/api/auth/register" \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "buyer@test.com",
-    "password": "password123",
+    "email": "ham@gmail.com",
+    "password": "aaaaaa",
     "userType": "buyer",
     "phone": "+212 6 12 34 56 78",
     "location": {
@@ -76,7 +76,7 @@ CUSTOMER_RESPONSE=$(curl -s -X POST "$BASE_URL/api/auth/register" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "customer@test.com",
-    "password": "password123",
+    "password": "aaaaaa",
     "userType": "customer",
     "phone": "+212 6 87 65 43 21",
     "location": {
