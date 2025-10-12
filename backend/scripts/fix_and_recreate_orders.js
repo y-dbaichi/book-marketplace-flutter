@@ -35,14 +35,14 @@ async function run() {
 
     // Get all available books from sellers
     const books = await Book.find({
-      buyer: { $in: sellers.map(s => s._id) },
+      seller: { $in: sellers.map(s => s._id) },
       status: 'available',
       quantity: { $gt: 0 }
-    }).populate('buyer');
+    }).populate('seller');
 
     console.log(`📚 Found ${books.length} available books`);
 
-    // Create orders with CORRECT schema - customer and buyer as ObjectId references
+    // Create orders with CORRECT schema - buyer and seller as ObjectId references
     const orders = [];
     const orderStatuses = ['pending', 'confirmed', 'delivered'];
 
@@ -50,13 +50,13 @@ async function run() {
     if (books.length > 0 && customers[0]) {
       orders.push({
         book: books[0]._id,
-        buyer: books[0].buyer._id,  // ObjectId reference
-        customer: customers[0]._id,  // ObjectId reference
+        seller: books[0].seller._id,  // ObjectId reference
+        buyer: customers[0]._id,      // ObjectId reference
         quantity: 1,
         totalPrice: books[0].price * 1,
-        customerNotes: 'Please deliver between 2-5 PM',
+        buyerNotes: 'Please deliver between 2-5 PM',
         status: orderStatuses[Math.floor(Math.random() * orderStatuses.length)],
-        customerLocation: {
+        buyerLocation: {
           type: 'Point',
           coordinates: [
             customers[0].location.coordinates.longitude,
@@ -65,14 +65,14 @@ async function run() {
           name: customers[0].location.name,
           address: customers[0].location.address
         },
-        buyerLocation: books[0].buyer.location ? {
+        sellerLocation: books[0].seller.location ? {
           type: 'Point',
           coordinates: [
-            books[0].buyer.location.coordinates.longitude,
-            books[0].buyer.location.coordinates.latitude
+            books[0].seller.location.coordinates.longitude,
+            books[0].seller.location.coordinates.latitude
           ],
-          name: books[0].buyer.location.name,
-          address: books[0].buyer.location.address
+          name: books[0].seller.location.name,
+          address: books[0].seller.location.address
         } : undefined
       });
     }
@@ -80,13 +80,13 @@ async function run() {
     if (books.length > 1 && customers[0]) {
       orders.push({
         book: books[1]._id,
-        buyer: books[1].buyer._id,
-        customer: customers[0]._id,
+        seller: books[1].seller._id,
+        buyer: customers[0]._id,
         quantity: 2,
         totalPrice: books[1].price * 2,
-        customerNotes: 'I will pick up tomorrow morning',
+        buyerNotes: 'I will pick up tomorrow morning',
         status: orderStatuses[Math.floor(Math.random() * orderStatuses.length)],
-        customerLocation: {
+        buyerLocation: {
           type: 'Point',
           coordinates: [
             customers[0].location.coordinates.longitude,
@@ -95,14 +95,14 @@ async function run() {
           name: customers[0].location.name,
           address: customers[0].location.address
         },
-        buyerLocation: books[1].buyer.location ? {
+        sellerLocation: books[1].seller.location ? {
           type: 'Point',
           coordinates: [
-            books[1].buyer.location.coordinates.longitude,
-            books[1].buyer.location.coordinates.latitude
+            books[1].seller.location.coordinates.longitude,
+            books[1].seller.location.coordinates.latitude
           ],
-          name: books[1].buyer.location.name,
-          address: books[1].buyer.location.address
+          name: books[1].seller.location.name,
+          address: books[1].seller.location.address
         } : undefined
       });
     }
@@ -111,13 +111,13 @@ async function run() {
     if (books.length > 2 && customers[1]) {
       orders.push({
         book: books[2]._id,
-        buyer: books[2].buyer._id,
-        customer: customers[1]._id,
+        seller: books[2].seller._id,
+        buyer: customers[1]._id,
         quantity: 1,
         totalPrice: books[2].price * 1,
-        customerNotes: 'Call before delivery',
+        buyerNotes: 'Call before delivery',
         status: orderStatuses[Math.floor(Math.random() * orderStatuses.length)],
-        customerLocation: {
+        buyerLocation: {
           type: 'Point',
           coordinates: [
             customers[1].location.coordinates.longitude,
@@ -126,14 +126,14 @@ async function run() {
           name: customers[1].location.name,
           address: customers[1].location.address
         },
-        buyerLocation: books[2].buyer.location ? {
+        sellerLocation: books[2].seller.location ? {
           type: 'Point',
           coordinates: [
-            books[2].buyer.location.coordinates.longitude,
-            books[2].buyer.location.coordinates.latitude
+            books[2].seller.location.coordinates.longitude,
+            books[2].seller.location.coordinates.latitude
           ],
-          name: books[2].buyer.location.name,
-          address: books[2].buyer.location.address
+          name: books[2].seller.location.name,
+          address: books[2].seller.location.address
         } : undefined
       });
     }
@@ -142,12 +142,12 @@ async function run() {
     if (books.length > 3 && customers[2]) {
       orders.push({
         book: books[3]._id,
-        buyer: books[3].buyer._id,
-        customer: customers[2]._id,
+        seller: books[3].seller._id,
+        buyer: customers[2]._id,
         quantity: 1,
         totalPrice: books[3].price * 1,
         status: orderStatuses[Math.floor(Math.random() * orderStatuses.length)],
-        customerLocation: {
+        buyerLocation: {
           type: 'Point',
           coordinates: [
             customers[2].location.coordinates.longitude,
@@ -156,14 +156,14 @@ async function run() {
           name: customers[2].location.name,
           address: customers[2].location.address
         },
-        buyerLocation: books[3].buyer.location ? {
+        sellerLocation: books[3].seller.location ? {
           type: 'Point',
           coordinates: [
-            books[3].buyer.location.coordinates.longitude,
-            books[3].buyer.location.coordinates.latitude
+            books[3].seller.location.coordinates.longitude,
+            books[3].seller.location.coordinates.latitude
           ],
-          name: books[3].buyer.location.name,
-          address: books[3].buyer.location.address
+          name: books[3].seller.location.name,
+          address: books[3].seller.location.address
         } : undefined
       });
     }
@@ -171,13 +171,13 @@ async function run() {
     if (books.length > 4 && customers[2]) {
       orders.push({
         book: books[4]._id,
-        buyer: books[4].buyer._id,
-        customer: customers[2]._id,
+        seller: books[4].seller._id,
+        buyer: customers[2]._id,
         quantity: 1,
         totalPrice: books[4].price * 1,
-        customerNotes: 'Urgent order',
+        buyerNotes: 'Urgent order',
         status: orderStatuses[Math.floor(Math.random() * orderStatuses.length)],
-        customerLocation: {
+        buyerLocation: {
           type: 'Point',
           coordinates: [
             customers[2].location.coordinates.longitude,
@@ -186,14 +186,14 @@ async function run() {
           name: customers[2].location.name,
           address: customers[2].location.address
         },
-        buyerLocation: books[4].buyer.location ? {
+        sellerLocation: books[4].seller.location ? {
           type: 'Point',
           coordinates: [
-            books[4].buyer.location.coordinates.longitude,
-            books[4].buyer.location.coordinates.latitude
+            books[4].seller.location.coordinates.longitude,
+            books[4].seller.location.coordinates.latitude
           ],
-          name: books[4].buyer.location.name,
-          address: books[4].buyer.location.address
+          name: books[4].seller.location.name,
+          address: books[4].seller.location.address
         } : undefined
       });
     }
@@ -205,12 +205,12 @@ async function run() {
     // Verify
     console.log('\n✅ Verifying orders can be queried correctly...');
     for (const customer of customers) {
-      const customerOrders = await Order.find({ customer: customer._id })
+      const customerOrders = await Order.find({ buyer: customer._id })
         .populate('book', 'title')
-        .populate('buyer', 'email');
+        .populate('seller', 'email');
       console.log(`   ${customer.email}: ${customerOrders.length} order(s)`);
       customerOrders.forEach(o => {
-        console.log(`      - "${o.book?.title}" from ${o.buyer?.email} - Status: ${o.status}`);
+        console.log(`      - "${o.book?.title}" from ${o.seller?.email} - Status: ${o.status}`);
       });
     }
 

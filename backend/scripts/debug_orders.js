@@ -27,8 +27,8 @@ async function run() {
 
     // Check what the API endpoint is looking for
     console.log('\n--- Testing API Query ---');
-    const ordersViaAPI = await Order.find({ customer: customer._id });
-    console.log('Orders found via customer ID match:', ordersViaAPI.length);
+    const ordersViaAPI = await Order.find({ buyer: customer._id });
+    console.log('Orders found via buyer ID match:', ordersViaAPI.length);
 
     process.exit(0);
   } catch (err) {

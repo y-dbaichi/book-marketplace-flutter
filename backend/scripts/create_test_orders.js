@@ -58,12 +58,12 @@ async function run() {
       
       await Order.create({
         book: book._id,
-        buyer: {
+        seller: {
           user: buyer._id,
           name: `${buyer.profile?.firstName || 'Hamza'} ${buyer.profile?.lastName || 'Fajir'}`,
           email: buyer.email
         },
-        customer: {
+        buyer: {
           name: p.customer,
           email: `${p.customer.toLowerCase().replace(/\s+/g, '.')}@example.com`,
           phone: p.phone
@@ -71,7 +71,7 @@ async function run() {
         quantity: i + 1,
         totalPrice: book.price * (i + 1),
         status: p.status,
-        customerLocation: {
+        buyerLocation: {
           type: 'Point',
           coordinates: p.coords,
           name: p.name,

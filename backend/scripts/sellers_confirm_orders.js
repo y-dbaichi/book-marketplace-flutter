@@ -25,7 +25,7 @@ async function run() {
     const updates = [];
     for (const order of pendingOrders) {
       order.status = 'confirmed';
-      order.buyerNotes = 'Order confirmed by seller';
+      order.sellerNotes = 'Order confirmed by seller';
       updates.push(order.save());
     }
 
