@@ -33,15 +33,15 @@ export default function BookSuppliersMap({
       
       // Create supplier points from books, filter by status
       const supplierPoints = books
-        .filter(book => book.buyer?.location && book.quantity > 0 && statusFilters.includes(book.status))
+        .filter(book => book.seller?.location && book.quantity > 0 && statusFilters.includes(book.status))
         .map(book => ({
           id: book._id,
-          name: book.buyer.location.name,
-          email: book.buyer.email,
-          phone: book.buyer.phone,
-          address: book.buyer.location.address,
-          latitude: book.buyer.location.coordinates.latitude,
-          longitude: book.buyer.location.coordinates.longitude,
+          name: book.seller.location.name,
+          email: book.seller.email,
+          phone: book.seller.phone,
+          address: book.seller.location.address,
+          latitude: book.seller.location.coordinates.latitude,
+          longitude: book.seller.location.coordinates.longitude,
           price: book.price,
           quality: book.quality,
           quantity: book.quantity,
