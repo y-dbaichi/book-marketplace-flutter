@@ -45,8 +45,8 @@ export default function MarketplacePage() {
       alert('Please login to place an order');
       return;
     }
-    if (user?.userType !== 'customer') {
-      alert('Only customers can place orders');
+    if (user?.userType !== 'buyer') {
+      alert('Only buyers can place orders');
       return;
     }
     setSelectedBook(book);
@@ -65,7 +65,7 @@ export default function MarketplacePage() {
         bookId: selectedBook._id,
         quantity: 1,
         orderType: 'pickup',
-        customerNotes: 'Looking forward to picking up this book!'
+        buyerNotes: 'Looking forward to picking up this book!'
       });
 
       alert('Order placed successfully! The seller will confirm your order soon.');
@@ -199,19 +199,19 @@ export default function MarketplacePage() {
               </p>
               {!searchTerm && (
                 <>
-                  {user?.userType === 'buyer' && (
+                  {user?.userType === 'seller' && (
                     <div className="d-flex justify-content-center gap-3 mb-3">
-                      <Button variant="primary" onClick={() => window.location.href = '/buyer/books'}>
+                      <Button variant="primary" onClick={() => window.location.href = '/seller/books'}>
                         <i className="bi bi-plus-circle me-2"></i>
                         Add Your First Book
                       </Button>
-                      <Button variant="outline" onClick={() => window.location.href = '/buyer/dashboard'}>
+                      <Button variant="outline" onClick={() => window.location.href = '/seller/dashboard'}>
                         <i className="bi bi-speedometer2 me-2"></i>
                         Go to Dashboard
                       </Button>
                     </div>
                   )}
-                  {user?.userType === 'customer' && (
+                  {user?.userType === 'buyer' && (
                     <div className="d-flex justify-content-center gap-3 mb-3">
                       <Button variant="outline" onClick={() => window.location.reload()}>
                         <i className="bi bi-arrow-clockwise me-2"></i>
