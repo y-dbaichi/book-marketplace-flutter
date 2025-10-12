@@ -7,11 +7,13 @@ class AppConstants {
   static const String loginEndpoint = '/auth/login';
   static const String registerEndpoint = '/auth/register';
   static const String profileEndpoint = '/auth/me';
+  static const String refreshEndpoint = '/auth/refresh';
   static const String geojsonExportsEndpoint = '/geojson/my-exports';
   static const String geojsonDownloadEndpoint = '/geojson/download';
   static const String geojsonGenerateEndpoint = '/geojson/generate';
   
   static const String tokenKey = 'auth_token';
+  static const String tokenExpiryKey = 'token_expiry';
   static const String userKey = 'user_data';
   static const String lastSyncKey = 'last_sync_timestamp';
   

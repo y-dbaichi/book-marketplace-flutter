@@ -46,12 +46,25 @@ class _SplashPageState extends State<SplashPage> {
 
     final isLoggedIn = await _authService.isLoggedIn();
 
-    if (mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => isLoggedIn ? HomePage() : LoginPage(),
-        ),
-      );
+    if (isLoggedIn) {
+      // Check token validity and refresh if needed
+      final isValid = await _authService.checkTokenValidity();
+
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => isValid ? HomePage() : LoginPage(),
+          ),
+        );
+      }
+    } else {
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => LoginPage(),
+          ),
+        );
+      }
     }
   }
 

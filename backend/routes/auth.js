@@ -230,4 +230,34 @@ router.put('/profile', auth, async (req, res) => {
   }
 });
 
+// @route   POST /api/auth/refresh
+// @desc    Refresh JWT token
+// @access  Private
+router.post('/refresh', auth, async (req, res) => {
+  try {
+    // Generate new token for authenticated user
+    const token = generateToken(req.user._id);
+
+    res.json({
+      message: 'Token refreshed successfully',
+      token,
+      user: {
+        id: req.user._id,
+        email: req.user.email,
+        userType: req.user.userType,
+        phone: req.user.phone,
+        location: req.user.location,
+        profile: req.user.profile
+      }
+    });
+
+  } catch (error) {
+    console.error('Token refresh error:', error);
+    res.status(500).json({
+      message: 'Server error refreshing token',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
 module.exports = router;
