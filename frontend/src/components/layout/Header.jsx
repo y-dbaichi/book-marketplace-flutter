@@ -54,10 +54,6 @@ export default function Header() {
                       <i className="bi bi-people me-2"></i>
                       My Clients
                     </Nav.Link>
-                    <Nav.Link as={Link} to="/buyer/exports" className="nav-link-enhanced">
-                      <i className="bi bi-download me-2"></i>
-                      Mobile Export
-                    </Nav.Link>
                   </>
                 ) : (
                   <>

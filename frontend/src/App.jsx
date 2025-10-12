@@ -11,7 +11,6 @@ import MarketplacePage from './pages/customer/MarketplacePage';
 import BuyerDashboard from './pages/buyer/BuyerDashboard';
 import BuyerBooks from './pages/buyer/BuyerBooks';
 import BuyerOrders from './pages/buyer/BuyerOrders';
-import BuyerExports from './pages/buyer/BuyerExports';
 import BuyerClients from './pages/buyer/BuyerClients';
 import CustomerOrders from './pages/customer/CustomerOrders';
 import CustomerSuppliers from './pages/customer/CustomerSuppliers';
@@ -94,11 +93,6 @@ function AppRoutes() {
                     <Route path="/buyer/orders" element={
                         <ProtectedRoute requiredRole="seller">
                             <BuyerOrders />
-                        </ProtectedRoute>
-                    } />
-                    <Route path="/buyer/exports" element={
-                        <ProtectedRoute requiredRole="seller">
-                            <BuyerExports />
                         </ProtectedRoute>
                     } />
                     <Route path="/buyer/clients" element={

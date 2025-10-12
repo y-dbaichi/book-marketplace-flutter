@@ -205,7 +205,9 @@ export default function BuyerDashboard() {
                         <div>
                           <h6 className="mb-1">{order.book?.title}</h6>
                           <p className="mb-1 text-muted small">
-                            Customer: {order.customer?.profile?.firstName} {order.customer?.profile?.lastName}
+                            Customer: {order.buyer?.profile?.firstName && order.buyer?.profile?.lastName
+                              ? `${order.buyer.profile.firstName} ${order.buyer.profile.lastName}`
+                              : order.buyer?.email || 'N/A'}
                           </p>
                           <small className="text-muted">
                             {new Date(order.createdAt).toLocaleDateString()}
@@ -246,12 +248,6 @@ export default function BuyerDashboard() {
                   <Button variant="outline" className="w-100 text-start">
                     <i className="bi bi-cart-check me-2"></i>
                     Manage Orders
-                  </Button>
-                </Link>
-                <Link to="/buyer/exports">
-                  <Button variant="outline" className="w-100 text-start">
-                    <i className="bi bi-download me-2"></i>
-                    GeoJSON Exports
                   </Button>
                 </Link>
                 <Link to="/buyer/clients">

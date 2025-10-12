@@ -263,7 +263,55 @@ router.put('/:id/status', auth, async (req, res) => {
       });
     }
 
-    // Update order
+    // Handle inventory management for status changes
+    const previousStatus = order.status;
+
+    // CONFIRM ORDER: Decrement book stock
+    if (status === 'confirmed' && previousStatus === 'pending' && !order.inventoryUpdated) {
+      const book = await Book.findById(order.book);
+
+      if (!book) {
+        return res.status(404).json({ message: 'Book not found' });
+      }
+
+      // Check if enough stock is available
+      if (book.quantity < order.quantity) {
+        return res.status(400).json({
+          message: `Insufficient stock. Only ${book.quantity} copies available, but order requires ${order.quantity}`
+        });
+      }
+
+      // Decrement stock
+      book.quantity -= order.quantity;
+
+      // Mark as sold if quantity reaches 0
+      if (book.quantity === 0) {
+        book.status = 'sold';
+      }
+
+      await book.save();
+      order.inventoryUpdated = true;
+    }
+
+    // REFUSE ORDER: Restore stock if it was previously confirmed
+    if (status === 'refused' && previousStatus === 'confirmed' && order.inventoryUpdated) {
+      const book = await Book.findById(order.book);
+
+      if (book) {
+        // Restore stock
+        book.quantity += order.quantity;
+
+        // Mark as available again if it was sold
+        if (book.status === 'sold') {
+          book.status = 'available';
+        }
+
+        await book.save();
+        order.inventoryUpdated = false;
+      }
+    }
+
+    // Update order status
     order.status = status;
 
     // Add notes

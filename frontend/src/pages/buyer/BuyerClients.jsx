@@ -17,16 +17,19 @@ export default function BuyerClients() {
   const fetchClients = async () => {
     try {
       setLoading(true);
-      const response = await orderService.getBuyerOrders();
+      const response = await orderService.getSellerOrders();
       const orders = response.orders || [];
 
-      // Group orders by customer to create client data
+      // Group orders by buyer (customer) to create client data
       const clientsMap = new Map();
 
       orders.forEach(order => {
-        const customer = order.customer;
-        if (customer && customer.location) {
-          const clientId = customer._id;
+        const buyer = order.buyer;
+        const buyerLocation = order.buyerLocation;
+
+        // Only include if we have buyer and location data
+        if (buyer && buyerLocation && buyerLocation.coordinates && buyerLocation.coordinates.length === 2) {
+          const clientId = buyer._id;
 
           if (clientsMap.has(clientId)) {
             const existingClient = clientsMap.get(clientId);
@@ -39,12 +42,12 @@ export default function BuyerClients() {
           } else {
             clientsMap.set(clientId, {
               id: clientId,
-              name: `${customer.profile?.firstName || ''} ${customer.profile?.lastName || ''}`.trim() || customer.email,
-              email: customer.email,
-              phone: customer.phone,
-              address: customer.location.address,
-              latitude: customer.location.coordinates.latitude,
-              longitude: customer.location.coordinates.longitude,
+              name: `${buyer.profile?.firstName || ''} ${buyer.profile?.lastName || ''}`.trim() || buyer.email || 'Unknown',
+              email: buyer.email || 'N/A',
+              phone: buyer.phone || 'N/A',
+              address: buyerLocation.address || 'N/A',
+              latitude: buyerLocation.coordinates[1], // GeoJSON format: [lng, lat]
+              longitude: buyerLocation.coordinates[0],
               totalOrders: 1,
               totalSpent: order.totalPrice || 0,
               lastOrder: new Date(order.createdAt),

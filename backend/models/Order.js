@@ -67,7 +67,11 @@ const orderSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  lastExportedAt: Date
+  lastExportedAt: Date,
+  inventoryUpdated: {
+    type: Boolean,
+    default: false
+  }
 }, {
   timestamps: true
 });

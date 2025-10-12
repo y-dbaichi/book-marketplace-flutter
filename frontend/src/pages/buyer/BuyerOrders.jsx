@@ -94,8 +94,12 @@ export default function BuyerOrders() {
                   <small className="text-muted">{order.book?.author}</small>
                 </td>
                 <td>
-                  <div>{order.customer?.name || 'N/A'}</div>
-                  <small className="text-muted">{order.customer?.phone}</small>
+                  <div>
+                    {order.buyer?.profile?.firstName && order.buyer?.profile?.lastName
+                      ? `${order.buyer.profile.firstName} ${order.buyer.profile.lastName}`
+                      : order.buyer?.email || 'N/A'}
+                  </div>
+                  <small className="text-muted">{order.buyer?.phone || 'N/A'}</small>
                 </td>
                 <td>{order.quantity}</td>
                 <td><strong>{order.totalPrice} MAD</strong></td>
@@ -106,11 +110,11 @@ export default function BuyerOrders() {
                 </td>
                 <td>
                   <div className="text-truncate" style={{ maxWidth: '200px' }}>
-                    {order.customerLocation?.name || order.customerLocation?.address || 'N/A'}
+                    {order.buyerLocation?.name || order.buyerLocation?.address || 'N/A'}
                   </div>
-                  {order.customerLocation?.address && (
+                  {order.buyerLocation?.address && order.buyerLocation?.name && (
                     <small className="text-muted d-block">
-                      {order.customerLocation.address}
+                      {order.buyerLocation.address}
                     </small>
                   )}
                 </td>
@@ -205,36 +209,39 @@ export default function BuyerOrders() {
               <div className="col-md-6">
                 <h6 className="text-muted mb-3">Customer Information</h6>
                 <div className="mb-2">
-                  <strong>Name:</strong> {selectedOrder.customer?.name || 'N/A'}
+                  <strong>Name:</strong>{' '}
+                  {selectedOrder.buyer?.profile?.firstName && selectedOrder.buyer?.profile?.lastName
+                    ? `${selectedOrder.buyer.profile.firstName} ${selectedOrder.buyer.profile.lastName}`
+                    : 'N/A'}
                 </div>
                 <div className="mb-2">
-                  <strong>Email:</strong> {selectedOrder.customer?.email || 'N/A'}
+                  <strong>Email:</strong> {selectedOrder.buyer?.email || 'N/A'}
                 </div>
                 <div className="mb-2">
-                  <strong>Phone:</strong> {selectedOrder.customer?.phone || 'N/A'}
+                  <strong>Phone:</strong> {selectedOrder.buyer?.phone || 'N/A'}
                 </div>
-                
+
                 <h6 className="text-muted mt-4 mb-3">Delivery Location</h6>
                 <div className="mb-2">
-                  <strong>Name:</strong> {selectedOrder.customerLocation?.name || 'N/A'}
+                  <strong>Name:</strong> {selectedOrder.buyerLocation?.name || 'N/A'}
                 </div>
                 <div className="mb-2">
-                  <strong>Address:</strong> {selectedOrder.customerLocation?.address || 'N/A'}
+                  <strong>Address:</strong> {selectedOrder.buyerLocation?.address || 'N/A'}
                 </div>
-                {selectedOrder.customerLocation?.coordinates && (
+                {selectedOrder.buyerLocation?.coordinates && (
                   <div className="mb-2">
                     <strong>Coordinates:</strong>{' '}
                     <small className="text-muted">
-                      {selectedOrder.customerLocation.coordinates[1]}, {selectedOrder.customerLocation.coordinates[0]}
+                      {selectedOrder.buyerLocation.coordinates[1]}, {selectedOrder.buyerLocation.coordinates[0]}
                     </small>
                   </div>
                 )}
                 
-                {selectedOrder.customerNotes && (
+                {selectedOrder.buyerNotes && (
                   <>
                     <h6 className="text-muted mt-4 mb-3">Customer Notes</h6>
                     <div className="alert alert-light">
-                      {selectedOrder.customerNotes}
+                      {selectedOrder.buyerNotes}
                     </div>
                   </>
                 )}
