@@ -29,18 +29,18 @@ const auth = async (req, res, next) => {
   }
 };
 
-// Check if user is a buyer (book seller)
-const requireBuyer = (req, res, next) => {
-  if (req.user.userType !== 'buyer') {
-    return res.status(403).json({ message: 'Access denied. Buyer account required.' });
+// Check if user is a seller (book seller)
+const requireSeller = (req, res, next) => {
+  if (req.user.userType !== 'seller') {
+    return res.status(403).json({ message: 'Access denied. Seller account required.' });
   }
   next();
 };
 
-// Check if user is a customer (book buyer)
-const requireCustomer = (req, res, next) => {
-  if (req.user.userType !== 'customer') {
-    return res.status(403).json({ message: 'Access denied. Customer account required.' });
+// Check if user is a buyer (book buyer)
+const requireBuyer = (req, res, next) => {
+  if (req.user.userType !== 'buyer') {
+    return res.status(403).json({ message: 'Access denied. Buyer account required.' });
   }
   next();
 };
@@ -68,7 +68,7 @@ const optionalAuth = async (req, res, next) => {
 
 module.exports = {
   auth,
+  requireSeller,
   requireBuyer,
-  requireCustomer,
   optionalAuth
 };

@@ -26,17 +26,27 @@ export default function BuyerOrders() {
     fetchOrders();
   }, []);
 
-  const handleApprove = async (orderId) => {
+  const handleUpdateStatus = async (orderId, newStatus) => {
     setUpdating(true);
     setError('');
     try {
-      await orderService.updateOrderStatus(orderId, { status: 'confirmed' });
-      setOrders(orders => orders.map(o => o._id === orderId ? { ...o, status: 'confirmed' } : o));
+      await orderService.updateOrderStatus(orderId, { status: newStatus });
+      setOrders(orders => orders.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
       setShowModal(false);
     } catch (err) {
       setError('Failed to update order status.');
     }
     setUpdating(false);
+  };
+
+  const getStatusBadge = (status) => {
+    const variants = {
+      pending: 'warning',
+      confirmed: 'primary',
+      delivered: 'success',
+      refused: 'danger'
+    };
+    return variants[status] || 'secondary';
   };
 
   return (
@@ -45,68 +55,228 @@ export default function BuyerOrders() {
         <i className="bi bi-cart-check me-2"></i>
         Order Management
       </h1>
-      <p className="text-muted">Manage customer orders and confirmations.</p>
+      <p className="text-muted">Manage customer orders and delivery confirmations.</p>
+      
       {loading ? (
-        <div className="text-center py-5">Loading orders...</div>
+        <div className="text-center py-5">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="mt-2">Loading orders...</p>
+        </div>
       ) : orders.length === 0 ? (
-        <div className="alert alert-info">No orders found.</div>
+        <div className="alert alert-info">
+          <i className="bi bi-info-circle me-2"></i>
+          No orders found.
+        </div>
       ) : (
         <Table hover responsive className="align-middle">
-          <thead>
+          <thead className="table-light">
             <tr>
               <th>Order #</th>
               <th>Book</th>
               <th>Customer</th>
+              <th>Qty</th>
+              <th>Price</th>
               <th>Status</th>
-              <th>Location</th>
+              <th>Delivery Location</th>
               <th>Date</th>
-              <th></th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {orders.map(order => (
               <tr key={order._id}>
-                <td>{order._id.slice(-6)}</td>
-                <td>{order.book?.title}</td>
-                <td>{order.customer?.profile?.firstName} {order.customer?.profile?.lastName}</td>
-                <td><Badge bg={order.status === 'completed' ? 'success' : order.status === 'confirmed' ? 'primary' : 'warning'}>{order.status}</Badge></td>
-                <td>{order.customer?.location?.address || 'N/A'}</td>
+                <td><code>{order._id.slice(-6)}</code></td>
+                <td>
+                  <strong>{order.book?.title || 'N/A'}</strong>
+                  <br />
+                  <small className="text-muted">{order.book?.author}</small>
+                </td>
+                <td>
+                  <div>{order.customer?.name || 'N/A'}</div>
+                  <small className="text-muted">{order.customer?.phone}</small>
+                </td>
+                <td>{order.quantity}</td>
+                <td><strong>{order.totalPrice} MAD</strong></td>
+                <td>
+                  <Badge bg={getStatusBadge(order.status)}>
+                    {order.status}
+                  </Badge>
+                </td>
+                <td>
+                  <div className="text-truncate" style={{ maxWidth: '200px' }}>
+                    {order.customerLocation?.name || order.customerLocation?.address || 'N/A'}
+                  </div>
+                  {order.customerLocation?.address && (
+                    <small className="text-muted d-block">
+                      {order.customerLocation.address}
+                    </small>
+                  )}
+                </td>
                 <td>{new Date(order.createdAt).toLocaleDateString()}</td>
                 <td>
-                  {order.status === 'pending' && (
-                    <Button size="sm" variant="success" onClick={() => { setSelectedOrder(order); setShowModal(true); }}>Approve</Button>
-                  )}
-                  <Button size="sm" variant="outline" className="ms-2" onClick={() => { setSelectedOrder(order); setShowModal(true); }}>View</Button>
+                  <div className="d-flex gap-2">
+                    {order.status === 'pending' && (
+                      <>
+                        <Button 
+                          size="sm" 
+                          variant="success" 
+                          onClick={() => handleUpdateStatus(order._id, 'confirmed')}
+                        >
+                          <i className="bi bi-check-circle me-1"></i>
+                          Confirm
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="danger" 
+                          onClick={() => handleUpdateStatus(order._id, 'refused')}
+                        >
+                          <i className="bi bi-x-circle me-1"></i>
+                          Refuse
+                        </Button>
+                      </>
+                    )}
+                    {order.status === 'confirmed' && (
+                      <Button 
+                        size="sm" 
+                        variant="info" 
+                        onClick={() => handleUpdateStatus(order._id, 'delivered')}
+                      >
+                        <i className="bi bi-truck me-1"></i>
+                        Mark Delivered
+                      </Button>
+                    )}
+                    <Button 
+                      size="sm" 
+                      variant="outline-primary" 
+                      onClick={() => { setSelectedOrder(order); setShowModal(true); }}
+                    >
+                      <i className="bi bi-eye"></i>
+                    </Button>
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </Table>
       )}
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
+
+      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
         <Modal.Header closeButton>
-          <Modal.Title>Order Details</Modal.Title>
+          <Modal.Title>
+            <i className="bi bi-receipt me-2"></i>
+            Order Details
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {selectedOrder && (
-            <>
-              <div><strong>Order #:</strong> {selectedOrder._id.slice(-6)}</div>
-              <div><strong>Book:</strong> {selectedOrder.book?.title}</div>
-              <div><strong>Customer:</strong> {selectedOrder.customer?.profile?.firstName} {selectedOrder.customer?.profile?.lastName}</div>
-              <div><strong>Status:</strong> {selectedOrder.status}</div>
-              <div><strong>Location:</strong> {selectedOrder.customer?.location?.address || 'N/A'}</div>
-              <div><strong>Date:</strong> {new Date(selectedOrder.createdAt).toLocaleString()}</div>
-            </>
+            <div className="row">
+              <div className="col-md-6">
+                <h6 className="text-muted mb-3">Order Information</h6>
+                <div className="mb-2">
+                  <strong>Order ID:</strong> <code>{selectedOrder._id}</code>
+                </div>
+                <div className="mb-2">
+                  <strong>Status:</strong>{' '}
+                  <Badge bg={getStatusBadge(selectedOrder.status)}>
+                    {selectedOrder.status}
+                  </Badge>
+                </div>
+                <div className="mb-2">
+                  <strong>Date:</strong> {new Date(selectedOrder.createdAt).toLocaleString()}
+                </div>
+                <div className="mb-2">
+                  <strong>Quantity:</strong> {selectedOrder.quantity}
+                </div>
+                <div className="mb-2">
+                  <strong>Total Price:</strong> <strong className="text-success">{selectedOrder.totalPrice} MAD</strong>
+                </div>
+                
+                <h6 className="text-muted mt-4 mb-3">Book Details</h6>
+                <div className="mb-2">
+                  <strong>Title:</strong> {selectedOrder.book?.title || 'N/A'}
+                </div>
+                <div className="mb-2">
+                  <strong>Author:</strong> {selectedOrder.book?.author || 'N/A'}
+                </div>
+              </div>
+              
+              <div className="col-md-6">
+                <h6 className="text-muted mb-3">Customer Information</h6>
+                <div className="mb-2">
+                  <strong>Name:</strong> {selectedOrder.customer?.name || 'N/A'}
+                </div>
+                <div className="mb-2">
+                  <strong>Email:</strong> {selectedOrder.customer?.email || 'N/A'}
+                </div>
+                <div className="mb-2">
+                  <strong>Phone:</strong> {selectedOrder.customer?.phone || 'N/A'}
+                </div>
+                
+                <h6 className="text-muted mt-4 mb-3">Delivery Location</h6>
+                <div className="mb-2">
+                  <strong>Name:</strong> {selectedOrder.customerLocation?.name || 'N/A'}
+                </div>
+                <div className="mb-2">
+                  <strong>Address:</strong> {selectedOrder.customerLocation?.address || 'N/A'}
+                </div>
+                {selectedOrder.customerLocation?.coordinates && (
+                  <div className="mb-2">
+                    <strong>Coordinates:</strong>{' '}
+                    <small className="text-muted">
+                      {selectedOrder.customerLocation.coordinates[1]}, {selectedOrder.customerLocation.coordinates[0]}
+                    </small>
+                  </div>
+                )}
+                
+                {selectedOrder.customerNotes && (
+                  <>
+                    <h6 className="text-muted mt-4 mb-3">Customer Notes</h6>
+                    <div className="alert alert-light">
+                      {selectedOrder.customerNotes}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
           )}
-          {error && <div className="alert alert-danger mt-2">{error}</div>}
+          {error && <div className="alert alert-danger mt-3">{error}</div>}
         </Modal.Body>
         <Modal.Footer>
           {selectedOrder && selectedOrder.status === 'pending' && (
-            <Button variant="success" loading={updating} onClick={() => handleApprove(selectedOrder._id)}>
-              Approve Order
+            <>
+              <Button 
+                variant="success" 
+                loading={updating} 
+                onClick={() => handleUpdateStatus(selectedOrder._id, 'confirmed')}
+              >
+                <i className="bi bi-check-circle me-2"></i>
+                Confirm Order
+              </Button>
+              <Button 
+                variant="danger" 
+                loading={updating} 
+                onClick={() => handleUpdateStatus(selectedOrder._id, 'refused')}
+              >
+                <i className="bi bi-x-circle me-2"></i>
+                Refuse Order
+              </Button>
+            </>
+          )}
+          {selectedOrder && selectedOrder.status === 'confirmed' && (
+            <Button 
+              variant="info" 
+              loading={updating} 
+              onClick={() => handleUpdateStatus(selectedOrder._id, 'delivered')}
+            >
+              <i className="bi bi-truck me-2"></i>
+              Mark as Delivered
             </Button>
           )}
-          <Button variant="secondary" onClick={() => setShowModal(false)}>Close</Button>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
+            Close
+          </Button>
         </Modal.Footer>
       </Modal>
     </Container>

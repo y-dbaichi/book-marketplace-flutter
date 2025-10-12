@@ -304,7 +304,7 @@ export default function BuyerBooks() {
           <Row>
             <Col md={6}>
               <Input
-                label="Price (€)"
+                label="Price (MAD)"
                 name="price"
                 type="number"
                 step="0.01"

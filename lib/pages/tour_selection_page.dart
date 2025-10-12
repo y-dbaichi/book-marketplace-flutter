@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../models/point_de_vente.dart';
-import '../pages/import_geojson_page.dart';
 import 'tournee_page.dart';
 
 class TourSelectionPage extends StatefulWidget {
@@ -20,29 +19,10 @@ class _TourSelectionPageState extends State<TourSelectionPage> {
   void initState() {
     super.initState();
     _allPoints = List.from(widget.existingPoints);
-    // Pre-select all existing points
     _selectedPointIds = widget.existingPoints
         .where((p) => p.id != null)
         .map((p) => p.id!)
         .toSet();
-  }
-
-  Future<void> _importFromBackend() async {
-    final result = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(builder: (_) => const ImportGeoJSONPage()),
-    );
-    
-    if (result == true) {
-      // Reload points after import
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✅ Points importés avec succès! Retournez à la page d\'accueil pour les voir.'),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 3),
-        ),
-      );
-    }
   }
 
   void _startTour() {
@@ -83,7 +63,6 @@ class _TourSelectionPageState extends State<TourSelectionPage> {
       ),
       body: Column(
         children: [
-          // Stats and Import Section
           Container(
             margin: const EdgeInsets.all(16),
             padding: const EdgeInsets.all(20),
@@ -140,84 +119,69 @@ class _TourSelectionPageState extends State<TourSelectionPage> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: _importFromBackend,
-                        icon: const Icon(Icons.cloud_download),
-                        label: const Text('Importer'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.indigo[600],
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _selectedPointIds.isEmpty ? null : _startTour,
+                    icon: const Icon(Icons.play_arrow),
+                    label: Text('Démarrer la Tournée (${_selectedPointIds.length})'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
+                      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: _selectedPointIds.isEmpty ? null : _startTour,
-                        icon: const Icon(Icons.play_arrow),
-                        label: Text('Démarrer (${_selectedPointIds.length})'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),
           ),
 
-          // Points List
           Expanded(
             child: _allPoints.isEmpty
                 ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            shape: BoxShape.circle,
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(Icons.route, size: 48, color: Colors.grey[400]),
                           ),
-                          child: Icon(Icons.route, size: 48, color: Colors.grey[400]),
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
-                          'Aucun point disponible',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey[700],
+                          const SizedBox(height: 24),
+                          Text(
+                            'Aucun point disponible',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[700],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Importez des points depuis le backend',
-                          style: TextStyle(color: Colors.grey[500]),
-                        ),
-                        const SizedBox(height: 24),
-                        ElevatedButton.icon(
-                          onPressed: _importFromBackend,
-                          icon: const Icon(Icons.cloud_download),
-                          label: const Text('Importer maintenant'),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Retournez à l\'accueil pour importer des points depuis le backend',
+                            style: TextStyle(color: Colors.grey[500]),
+                            textAlign: TextAlign.center,
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            onPressed: () => Navigator.pop(context),
+                            icon: const Icon(Icons.arrow_back),
+                            label: const Text('Retour à l\'accueil'),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   )
                 : ListView.builder(
@@ -264,7 +228,6 @@ class _TourSelectionPageState extends State<TourSelectionPage> {
                               padding: const EdgeInsets.all(16),
                               child: Row(
                                 children: [
-                                  // Checkbox
                                   Container(
                                     width: 50,
                                     height: 50,
@@ -280,7 +243,6 @@ class _TourSelectionPageState extends State<TourSelectionPage> {
                                   
                                   const SizedBox(width: 16),
                                   
-                                  // Content
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -305,9 +267,12 @@ class _TourSelectionPageState extends State<TourSelectionPage> {
                                         const SizedBox(height: 8),
                                         Row(
                                           children: [
-                                            _buildInfoChip(Icons.person, point.contact),
-                                            const SizedBox(width: 8),
-                                            _buildInfoChip(Icons.phone, point.telephone),
+                                            if (point.contact.isNotEmpty)
+                                              _buildInfoChip(Icons.person, point.contact),
+                                            if (point.contact.isNotEmpty && point.telephone.isNotEmpty)
+                                              const SizedBox(width: 8),
+                                            if (point.telephone.isNotEmpty)
+                                              _buildInfoChip(Icons.phone, point.telephone),
                                           ],
                                         ),
                                       ],
@@ -339,15 +304,17 @@ class _TourSelectionPageState extends State<TourSelectionPage> {
         children: [
           Icon(icon, size: 14, color: Colors.grey[600]),
           const SizedBox(width: 4),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[700],
-              fontWeight: FontWeight.w500,
+          Flexible(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[700],
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

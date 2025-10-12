@@ -1,6 +1,6 @@
 const express = require('express');
 const Book = require('../models/Book');
-const { auth, requireBuyer, optionalAuth } = require('../middleware/auth');
+const { auth, requireSeller, optionalAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -51,7 +51,7 @@ router.get('/', optionalAuth, async (req, res) => {
 
     // Execute query
     const books = await Book.find(query)
-      .populate('buyer', 'profile location phone')
+      .populate('seller', 'profile location phone')
       .sort(sortOptions)
       .skip(skip)
       .limit(parseInt(limit));
@@ -85,14 +85,14 @@ router.get('/', optionalAuth, async (req, res) => {
 router.get('/:id', optionalAuth, async (req, res) => {
   try {
     const book = await Book.findById(req.params.id)
-      .populate('buyer', 'profile location phone');
+      .populate('seller', 'profile location phone');
 
     if (!book) {
       return res.status(404).json({ message: 'Book not found' });
     }
 
     // Increment view count if not the owner
-    if (!req.user || book.buyer._id.toString() !== req.user._id.toString()) {
+    if (!req.user || book.seller._id.toString() !== req.user._id.toString()) {
       book.views += 1;
       await book.save();
     }
@@ -113,8 +113,8 @@ router.get('/:id', optionalAuth, async (req, res) => {
 
 // @route   POST /api/books
 // @desc    Create new book listing
-// @access  Private (Buyers only)
-router.post('/', auth, requireBuyer, async (req, res) => {
+// @access  Private (Sellers only)
+router.post('/', auth, requireSeller, async (req, res) => {
   try {
     const {
       title,
@@ -164,11 +164,11 @@ router.post('/', auth, requireBuyer, async (req, res) => {
       category,
       isbn,
       condition,
-      buyer: req.user._id
+      seller: req.user._id
     });
 
     await book.save();
-    await book.populate('buyer', 'profile location phone');
+    await book.populate('seller', 'profile location phone');
 
     res.status(201).json({
       message: 'Book listed successfully',
@@ -187,7 +187,7 @@ router.post('/', auth, requireBuyer, async (req, res) => {
 // @route   PUT /api/books/:id
 // @desc    Update book listing
 // @access  Private (Book owner only)
-router.put('/:id', auth, requireBuyer, async (req, res) => {
+router.put('/:id', auth, requireSeller, async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
 
@@ -196,7 +196,7 @@ router.put('/:id', auth, requireBuyer, async (req, res) => {
     }
 
     // Check ownership
-    if (book.buyer.toString() !== req.user._id.toString()) {
+    if (book.seller.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Not authorized to update this book' });
     }
 
@@ -230,7 +230,7 @@ router.put('/:id', auth, requireBuyer, async (req, res) => {
     }
 
     await book.save();
-    await book.populate('buyer', 'profile location phone');
+    await book.populate('seller', 'profile location phone');
 
     res.json({
       message: 'Book updated successfully',
@@ -252,7 +252,7 @@ router.put('/:id', auth, requireBuyer, async (req, res) => {
 // @route   DELETE /api/books/:id
 // @desc    Delete book listing
 // @access  Private (Book owner only)
-router.delete('/:id', auth, requireBuyer, async (req, res) => {
+router.delete('/:id', auth, requireSeller, async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
 
@@ -261,7 +261,7 @@ router.delete('/:id', auth, requireBuyer, async (req, res) => {
     }
 
     // Check ownership
-    if (book.buyer.toString() !== req.user._id.toString()) {
+    if (book.seller.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Not authorized to delete this book' });
     }
 
@@ -282,13 +282,13 @@ router.delete('/:id', auth, requireBuyer, async (req, res) => {
 });
 
 // @route   GET /api/books/my/listings
-// @desc    Get current buyer's book listings
-// @access  Private (Buyers only)
-router.get('/my/listings', auth, requireBuyer, async (req, res) => {
+// @desc    Get current seller's book listings
+// @access  Private (Sellers only)
+router.get('/my/listings', auth, requireSeller, async (req, res) => {
   try {
     const { status, page = 1, limit = 20 } = req.query;
 
-    let query = { buyer: req.user._id };
+    let query = { seller: req.user._id };
     if (status) query.status = status;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);

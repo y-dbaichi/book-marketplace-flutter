@@ -11,7 +11,7 @@ const generateToken = (userId) => {
 };
 
 // @route   POST /api/auth/register
-// @desc    Register new user (buyer or customer)
+// @desc    Register new user (buyer or seller)
 // @access  Public
 router.post('/register', async (req, res) => {
   try {
@@ -31,9 +31,9 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    if (!['buyer', 'customer'].includes(userType)) {
+    if (!['buyer', 'seller'].includes(userType)) {
       return res.status(400).json({
-        message: 'userType must be either "buyer" or "customer"'
+        message: 'userType must be either "buyer" or "seller"'
       });
     }
 

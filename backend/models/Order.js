@@ -6,19 +6,15 @@ const orderSchema = new mongoose.Schema({
     ref: 'Book',
     required: true
   },
-  buyer: {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true
-    },
-    name: String,
-    email: String
+  seller: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   },
-  customer: {
-    name: { type: String, required: true },
-    email: { type: String, required: true },
-    phone: { type: String, required: true }
+  buyer: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   },
   quantity: {
     type: Number,
@@ -36,7 +32,7 @@ const orderSchema = new mongoose.Schema({
     default: 'pending',
     required: true
   },
-  customerLocation: {
+  buyerLocation: {
     type: {
       type: String,
       enum: ['Point'],
@@ -49,7 +45,7 @@ const orderSchema = new mongoose.Schema({
     name: String,
     address: String
   },
-  buyerLocation: {
+  sellerLocation: {
     type: {
       type: String,
       enum: ['Point'],
@@ -59,11 +55,11 @@ const orderSchema = new mongoose.Schema({
     name: String,
     address: String
   },
-  customerNotes: {
+  buyerNotes: {
     type: String,
     maxlength: 500
   },
-  buyerNotes: {
+  sellerNotes: {
     type: String,
     maxlength: 500
   },
@@ -76,25 +72,26 @@ const orderSchema = new mongoose.Schema({
   timestamps: true
 });
 
-orderSchema.index({ 'buyer.user': 1, status: 1 });
+orderSchema.index({ seller: 1, status: 1 });
+orderSchema.index({ buyer: 1, status: 1 });
 orderSchema.index({ status: 1, createdAt: -1 });
-orderSchema.index({ customerLocation: '2dsphere' });
+orderSchema.index({ buyerLocation: '2dsphere' });
 
 orderSchema.pre('save', async function(next) {
-  if (this.isNew && !this.buyerLocation) {
+  if (this.isNew && !this.sellerLocation) {
     try {
       const User = mongoose.model('User');
-      const buyer = await User.findById(this.buyer.user);
-      if (buyer && buyer.location) {
-        this.buyerLocation = {
+      const seller = await User.findById(this.seller);
+      if (seller && seller.location) {
+        this.sellerLocation = {
           type: 'Point',
-          coordinates: buyer.location.coordinates.coordinates || buyer.location.coordinates,
-          name: buyer.location.name,
-          address: buyer.location.address
+          coordinates: seller.location.coordinates.coordinates || seller.location.coordinates,
+          name: seller.location.name,
+          address: seller.location.address
         };
       }
     } catch (error) {
-      console.error('Error populating buyer location:', error);
+      console.error('Error populating seller location:', error);
     }
   }
   next();

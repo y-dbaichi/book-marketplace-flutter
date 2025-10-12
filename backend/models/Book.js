@@ -43,8 +43,8 @@ const bookSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  // Reference to the buyer (seller)
-  buyer: {
+  // Reference to the seller (book owner)
+  seller: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
@@ -94,7 +94,7 @@ const bookSchema = new mongoose.Schema({
 
 // Index for search functionality
 bookSchema.index({ title: 'text', author: 'text', category: 'text' });
-bookSchema.index({ buyer: 1, status: 1 });
+bookSchema.index({ seller: 1, status: 1 });
 bookSchema.index({ status: 1, createdAt: -1 });
 
 // Virtual for available quantity (considering reserved orders)

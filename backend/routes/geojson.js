@@ -78,13 +78,13 @@ module.exports = router;
 router.get('/debug-orders', auth, async (req, res) => {
   try {
     const Order = require('../models/Order');
-    const orders = await Order.find({ 'buyer.user': req.user._id })
+    const orders = await Order.find({ seller: req.user._id })
       .populate('book')
       .limit(10);
-    
+
     res.json({
-      buyerId: req.user._id,
-      buyerEmail: req.user.email,
+      sellerId: req.user._id,
+      sellerEmail: req.user.email,
       totalOrders: orders.length,
       orders: orders.map(o => ({
         id: o._id,
@@ -93,7 +93,7 @@ router.get('/debug-orders', auth, async (req, res) => {
         orderType: o.orderType,
         quantity: o.quantity,
         buyerLocation: o.buyerLocation,
-        customerLocation: o.customerLocation
+        sellerLocation: o.sellerLocation
       }))
     });
   } catch (error) {
