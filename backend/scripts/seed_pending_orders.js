@@ -56,8 +56,8 @@ async function run() {
     );
 
     // Pull some books
-    const seller1Books = await Book.find({ buyer: seller1._id, status: 'available' }).limit(3).lean();
-    const seller2Books = await Book.find({ buyer: seller2._id, status: 'available' }).limit(3).lean();
+    const seller1Books = await Book.find({ seller: seller1._id, status: 'available' }).limit(3).lean();
+    const seller2Books = await Book.find({ seller: seller2._id, status: 'available' }).limit(3).lean();
     if (seller1Books.length === 0 && seller2Books.length === 0) {
       console.error('❌ No available books found for sellers.');
       process.exit(1);
@@ -76,8 +76,8 @@ async function run() {
 
       // Avoid duplicating the exact same pending order for the same trio (customer+book+seller)
       const exists = await Order.exists({
-        customer: c.customer._id,
-        buyer: c.seller._id,
+        buyer: c.customer._id,
+        seller: c.seller._id,
         book: c.book._id,
         status: 'pending'
       });
@@ -86,17 +86,17 @@ async function run() {
       }
 
       const order = new Order({
-        customer: c.customer._id,     // ref to User (customer)
-        buyer: c.seller._id,          // ref to User (seller)
+        buyer: c.customer._id,        // ref to User (buyer)
+        seller: c.seller._id,         // ref to User (seller)
         book: c.book._id,             // ref to Book
         quantity,
         totalPrice,
         orderType: 'delivery',        // your current schema expects this
         status: 'pending',            // keep sellers from confirming yet
-        customerNotes: 'Please deliver in the afternoon.',
+        buyerNotes: 'Please deliver in the afternoon.',
         locations: {
-          buyerLocation: c.seller.location || undefined,     // same shape as User.location
-          customerLocation: c.customer.location || undefined // destination = customer place
+          sellerLocation: c.seller.location || undefined,    // same shape as User.location
+          buyerLocation: c.customer.location || undefined    // destination = buyer place
         }
       });
 

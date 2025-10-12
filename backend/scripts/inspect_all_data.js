@@ -54,7 +54,7 @@ async function inspectAllData() {
     console.log('📚 BOOKS');
     console.log('─'.repeat(70));
     
-    const books = await Book.find().populate('buyer', 'email displayName').lean();
+    const books = await Book.find().populate('seller', 'email displayName').lean();
     console.log(`Total Books: ${books.length}\n`);
     
     if (books.length > 0) {
@@ -79,7 +79,7 @@ async function inspectAllData() {
       books.slice(0, 10).forEach((book, i) => {
         console.log(`\n   ${i + 1}. "${book.title}" by ${book.author}`);
         console.log(`      Price: ${book.price} MAD | Qty: ${book.quantity} | Status: ${book.status}`);
-        console.log(`      Seller: ${book.buyer?.email || book.buyer?.displayName || 'Unknown'}`);
+        console.log(`      Seller: ${book.seller?.email || book.seller?.displayName || 'Unknown'}`);
         console.log(`      Category: ${book.category || 'N/A'} | Quality: ${book.quality}`);
         console.log(`      ID: ${book._id}`);
       });
@@ -98,8 +98,8 @@ async function inspectAllData() {
     console.log('─'.repeat(70));
     
     const orders = await Order.find()
-      .populate('customer', 'email displayName')
       .populate('buyer', 'email displayName')
+      .populate('seller', 'email displayName')
       .populate('book', 'title author price')
       .lean();
     
@@ -132,18 +132,18 @@ async function inspectAllData() {
       orders.slice(0, 10).forEach((order, i) => {
         console.log(`\n   ${i + 1}. Order #${order._id.toString().slice(-6)}`);
         console.log(`      Book: ${order.book?.title || 'N/A'} by ${order.book?.author || 'N/A'}`);
-        console.log(`      Customer: ${order.customer?.email || order.customer?.displayName || 'N/A'}`);
-        console.log(`      Seller: ${order.buyer?.email || order.buyer?.displayName || 'N/A'}`);
+        console.log(`      Buyer: ${order.buyer?.email || order.buyer?.displayName || 'N/A'}`);
+        console.log(`      Seller: ${order.seller?.email || order.seller?.displayName || 'N/A'}`);
         console.log(`      Status: ${order.status} | Qty: ${order.quantity} | Total: ${order.totalPrice} MAD`);
-        
-        const location = order.locations?.customerLocation || order.customerLocation;
+
+        const location = order.locations?.buyerLocation || order.buyerLocation;
         if (location) {
           console.log(`      Location: ${location.name || location.address || 'N/A'}`);
           if (location.address) console.log(`      Address: ${location.address}`);
         } else {
           console.log(`      Location: N/A`);
         }
-        
+
         console.log(`      Created: ${new Date(order.createdAt).toLocaleString()}`);
       });
       
@@ -223,18 +223,18 @@ async function inspectAllData() {
     console.log('🔍 DATA QUALITY CHECKS:');
     console.log('─'.repeat(70));
     
-    const ordersWithoutLocation = orders.filter(o => 
-      !o.locations?.customerLocation && !o.customerLocation
+    const ordersWithoutLocation = orders.filter(o =>
+      !o.locations?.buyerLocation && !o.buyerLocation
     ).length;
-    
-    const ordersWithLocation = orders.filter(o => 
-      o.locations?.customerLocation || o.customerLocation
+
+    const ordersWithLocation = orders.filter(o =>
+      o.locations?.buyerLocation || o.buyerLocation
     ).length;
-    
+
     console.log(`   ✅ Orders with location: ${ordersWithLocation}`);
     console.log(`   ⚠️  Orders without location: ${ordersWithoutLocation}`);
-    
-    const booksWithoutSeller = books.filter(b => !b.buyer).length;
+
+    const booksWithoutSeller = books.filter(b => !b.seller).length;
     console.log(`   ${booksWithoutSeller === 0 ? '✅' : '⚠️'}  Books without seller: ${booksWithoutSeller}`);
     
     const ordersWithoutBook = orders.filter(o => !o.book).length;

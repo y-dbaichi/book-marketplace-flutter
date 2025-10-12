@@ -17,7 +17,7 @@ async function run() {
     // Find sellers
     const sellers = await User.find({
       email: { $in: ['seller1@gmail.com', 'seller2@gmail.com'] },
-      userType: 'buyer'
+      userType: 'seller'
     });
 
     if (sellers.length < 2) {
@@ -28,7 +28,7 @@ async function run() {
     // Find customers
     const customers = await User.find({
       email: { $in: ['customer1@gmail.com', 'customer2@gmail.com', 'customer3@gmail.com'] },
-      userType: 'customer'
+      userType: 'buyer'
     });
 
     console.log(`✅ Found ${customers.length} customers`);
