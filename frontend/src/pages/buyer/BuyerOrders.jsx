@@ -16,7 +16,7 @@ export default function BuyerOrders() {
     async function fetchOrders() {
       setLoading(true);
       try {
-        const response = await orderService.getBuyerOrders();
+        const response = await orderService.getSellerOrders();
         setOrders(response.orders || []);
       } catch (err) {
         setOrders([]);

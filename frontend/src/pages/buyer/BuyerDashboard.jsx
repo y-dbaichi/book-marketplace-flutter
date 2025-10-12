@@ -33,7 +33,7 @@ export default function BuyerDashboard() {
       // Fetch books and orders in parallel
       const [booksResponse, ordersResponse] = await Promise.all([
         bookService.getMyListings(),
-        orderService.getBuyerOrders()
+        orderService.getSellerOrders()
       ]);
 
       const books = booksResponse.books || [];

@@ -6,6 +6,7 @@ import Button from '../../components/common/Button';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import Modal from '../../components/common/Modal';
 import BookSuppliersMap from '../../components/common/BookSuppliersMap';
+import Swal from 'sweetalert2';
 
 export default function MarketplacePage() {
   const [books, setBooks] = useState([]);
@@ -15,6 +16,8 @@ export default function MarketplacePage() {
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [showSuppliersMap, setShowSuppliersMap] = useState(false);
   const [orderLoading, setOrderLoading] = useState(false);
+  const [orderQuantity, setOrderQuantity] = useState(1);
+  const [buyerNotes, setBuyerNotes] = useState('');
 
   const { isAuthenticated, user } = useAuth();
 
@@ -42,14 +45,32 @@ export default function MarketplacePage() {
 
   const handleOrderBook = (book) => {
     if (!isAuthenticated) {
-      alert('Please login to place an order');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Authentication Required',
+        text: 'Please login to place an order',
+        confirmButtonText: 'Go to Login',
+        showCancelButton: true,
+        confirmButtonColor: '#0d6efd',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = '/login';
+        }
+      });
       return;
     }
     if (user?.userType !== 'buyer') {
-      alert('Only buyers can place orders');
+      Swal.fire({
+        icon: 'error',
+        title: 'Access Denied',
+        text: 'Only buyers can place orders',
+        confirmButtonColor: '#dc3545',
+      });
       return;
     }
     setSelectedBook(book);
+    setOrderQuantity(1);
+    setBuyerNotes('');
     setShowOrderModal(true);
   };
 
@@ -59,20 +80,72 @@ export default function MarketplacePage() {
   };
 
   const submitOrder = async () => {
+    // Validate quantity
+    if (orderQuantity < 1) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Quantity',
+        text: 'Please enter a valid quantity (minimum 1)',
+        confirmButtonColor: '#dc3545',
+      });
+      return;
+    }
+
+    if (orderQuantity > selectedBook.quantity) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Insufficient Stock',
+        text: `Only ${selectedBook.quantity} item(s) available. Please reduce your order quantity.`,
+        confirmButtonColor: '#dc3545',
+      });
+      return;
+    }
+
     try {
       setOrderLoading(true);
       await orderService.createOrder({
         bookId: selectedBook._id,
-        quantity: 1,
-        orderType: 'pickup',
-        buyerNotes: 'Looking forward to picking up this book!'
+        quantity: orderQuantity,
+        orderType: 'delivery', // Seller delivers to buyer
+        buyerNotes: buyerNotes.trim() || 'No additional notes'
       });
 
-      alert('Order placed successfully! The seller will confirm your order soon.');
       setShowOrderModal(false);
       setSelectedBook(null);
+      setOrderQuantity(1);
+      setBuyerNotes('');
+
+      // Success notification
+      Swal.fire({
+        icon: 'success',
+        title: 'Order Placed Successfully!',
+        html: `
+          <div class="text-start">
+            <p class="mb-2"><strong>What happens next:</strong></p>
+            <ol class="mb-0">
+              <li>The seller will review your order</li>
+              <li>Once confirmed, the seller will deliver to your address</li>
+              <li>You'll receive a confirmation notification</li>
+            </ol>
+          </div>
+        `,
+        confirmButtonText: 'View My Orders',
+        showCancelButton: true,
+        cancelButtonText: 'Continue Shopping',
+        confirmButtonColor: '#198754',
+        cancelButtonColor: '#6c757d',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = '/customer/orders';
+        }
+      });
     } catch (error) {
-      alert('Error placing order: ' + (error.response?.data?.message || error.message));
+      Swal.fire({
+        icon: 'error',
+        title: 'Order Failed',
+        text: error.response?.data?.message || error.message || 'An error occurred while placing your order',
+        confirmButtonColor: '#dc3545',
+      });
     } finally {
       setOrderLoading(false);
     }
@@ -320,7 +393,69 @@ export default function MarketplacePage() {
               <div className="mb-4 text-center">
                 <h4 className="fw-bold">{selectedBook.title}</h4>
                 <p className="text-muted mb-2">by {selectedBook.author}</p>
-                <p className="price-display">{selectedBook.price}€</p>
+                <div className="d-flex justify-content-center align-items-center gap-2">
+                  <span className="price-display">{selectedBook.price}€</span>
+                  <span className="text-muted">per item</span>
+                </div>
+              </div>
+
+              {/* Quantity Selector */}
+              <div className="mb-4">
+                <label className="form-label fw-semibold">
+                  <i className="bi bi-box me-2"></i>
+                  Quantity
+                </label>
+                <div className="d-flex align-items-center gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setOrderQuantity(Math.max(1, orderQuantity - 1))}
+                    disabled={orderQuantity <= 1}
+                    className="px-3"
+                  >
+                    <i className="bi bi-dash-lg"></i>
+                  </Button>
+                  <Form.Control
+                    type="number"
+                    min="1"
+                    max={selectedBook.quantity}
+                    value={orderQuantity}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 1;
+                      setOrderQuantity(Math.min(selectedBook.quantity, Math.max(1, value)));
+                    }}
+                    className="text-center"
+                    style={{ maxWidth: '100px' }}
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={() => setOrderQuantity(Math.min(selectedBook.quantity, orderQuantity + 1))}
+                    disabled={orderQuantity >= selectedBook.quantity}
+                    className="px-3"
+                  >
+                    <i className="bi bi-plus-lg"></i>
+                  </Button>
+                  <div className="ms-auto">
+                    <small className="text-muted d-block">Available: {selectedBook.quantity}</small>
+                    <strong className="text-success">{(selectedBook.price * orderQuantity).toFixed(2)}€ Total</strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* Buyer Notes */}
+              <div className="mb-4">
+                <label className="form-label fw-semibold">
+                  <i className="bi bi-chat-left-text me-2"></i>
+                  Notes for Seller (Optional)
+                </label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  placeholder="Add any special instructions or preferences..."
+                  value={buyerNotes}
+                  onChange={(e) => setBuyerNotes(e.target.value)}
+                  maxLength={500}
+                />
+                <small className="text-muted">{buyerNotes.length}/500 characters</small>
               </div>
 
               <div className="mb-4">
@@ -336,12 +471,13 @@ export default function MarketplacePage() {
               </div>
 
               <div className="alert alert-info border-0 shadow-sm">
-                <i className="bi bi-info-circle me-2"></i>
-                <strong>Order Process:</strong>
+                <i className="bi bi-truck me-2"></i>
+                <strong>Delivery Process:</strong>
                 <ol className="mb-0 mt-2">
                   <li>You place the order</li>
-                  <li>Seller confirms and sets meeting location</li>
-                  <li>You meet to complete the transaction</li>
+                  <li>Seller reviews and confirms your order</li>
+                  <li>Seller delivers the book to your address</li>
+                  <li>Payment upon delivery</li>
                 </ol>
               </div>
 
@@ -368,7 +504,7 @@ export default function MarketplacePage() {
                   ) : (
                     <>
                       <i className="bi bi-check-circle me-2"></i>
-                      Confirm Order
+                      Place Order ({(selectedBook.price * orderQuantity).toFixed(2)}€)
                     </>
                   )}
                 </Button>
@@ -383,7 +519,6 @@ export default function MarketplacePage() {
           onClose={() => setShowSuppliersMap(false)}
           bookTitle={selectedBook?.title}
           bookAuthor={selectedBook?.author}
-          statusFilters={['pending', 'confirmed', 'completed']} // Pass all statuses or connect to filter UI
         />
       </Container>
     </div>

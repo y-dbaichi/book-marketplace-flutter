@@ -133,6 +133,11 @@ export const orderService = {
     return response.data;
   },
 
+  async getSellerOrders() {
+    const response = await apiClient.get('/orders/my/seller');
+    return response.data;
+  },
+
   async updateOrderStatus(orderId, statusData) {
     const response = await apiClient.put(`/orders/${orderId}/status`, statusData);
     return response.data;

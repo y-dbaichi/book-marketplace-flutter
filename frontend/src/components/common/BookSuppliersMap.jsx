@@ -1,61 +1,68 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Modal, Card, Badge, Row, Col } from 'react-bootstrap';
 import { bookService } from '../../services/api';
 import LocationMap from './LocationMap';
 import LoadingSpinner from './LoadingSpinner';
 import Button from './Button';
 
-export default function BookSuppliersMap({ 
-  isOpen, 
-  onClose, 
-  bookTitle, 
-  bookAuthor, 
-  statusFilters = ['pending', 'confirmed', 'completed'] // new prop for filtering
+export default function BookSuppliersMap({
+  isOpen,
+  onClose,
+  bookTitle,
+  bookAuthor
 }) {
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (isOpen && bookTitle) {
-      fetchBookSuppliers();
-    }
-  }, [isOpen, bookTitle, statusFilters]);
+  const fetchBookSuppliers = useCallback(async () => {
+    if (!bookTitle) return;
 
-  const fetchBookSuppliers = async () => {
     try {
       setLoading(true);
       // Search for books with the same title and author
       const response = await bookService.getAllBooks({
-        search: `${bookTitle} ${bookAuthor}`.trim()
+        search: `${bookTitle} ${bookAuthor || ''}`.trim()
       });
-      
+
       const books = response.books || [];
-      
-      // Create supplier points from books, filter by status
+
+      // Create supplier points from books with valid seller locations and stock
       const supplierPoints = books
-        .filter(book => book.seller?.location && book.quantity > 0 && statusFilters.includes(book.status))
+        .filter(book =>
+          book.seller?.location?.coordinates &&
+          book.seller.location.coordinates.latitude &&
+          book.seller.location.coordinates.longitude &&
+          book.quantity > 0
+        )
         .map(book => ({
           id: book._id,
-          name: book.seller.location.name,
-          email: book.seller.email,
-          phone: book.seller.phone,
-          address: book.seller.location.address,
+          name: book.seller.location.name || 'Seller Location',
+          email: book.seller.email || 'No email',
+          phone: book.seller.phone || 'No phone',
+          address: book.seller.location.address || 'Address not provided',
           latitude: book.seller.location.coordinates.latitude,
           longitude: book.seller.location.coordinates.longitude,
           price: book.price,
           quality: book.quality,
           quantity: book.quantity,
-          status: book.status,
-          bookId: book._id
+          bookId: book._id,
+          sellerName: book.seller.profile?.name || book.seller.email?.split('@')[0] || 'Unknown Seller'
         }));
-      
+
       setSuppliers(supplierPoints);
     } catch (error) {
       console.error('Error fetching book suppliers:', error);
+      setSuppliers([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [bookTitle, bookAuthor]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchBookSuppliers();
+    }
+  }, [isOpen, fetchBookSuppliers]);
 
   const getQualityBadge = (quality) => {
     const variants = {

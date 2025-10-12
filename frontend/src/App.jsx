@@ -80,41 +80,41 @@ function AppRoutes() {
                         </ProtectedRoute>
                     } />
 
-                    {/* Buyer Routes */}
+                    {/* Seller Routes (named 'buyer' in folder structure but for sellers) */}
                     <Route path="/buyer/dashboard" element={
-                        <ProtectedRoute requiredRole="buyer">
+                        <ProtectedRoute requiredRole="seller">
                             <BuyerDashboard />
                         </ProtectedRoute>
                     } />
                     <Route path="/buyer/books" element={
-                        <ProtectedRoute requiredRole="buyer">
+                        <ProtectedRoute requiredRole="seller">
                             <BuyerBooks />
                         </ProtectedRoute>
                     } />
                     <Route path="/buyer/orders" element={
-                        <ProtectedRoute requiredRole="buyer">
+                        <ProtectedRoute requiredRole="seller">
                             <BuyerOrders />
                         </ProtectedRoute>
                     } />
                     <Route path="/buyer/exports" element={
-                        <ProtectedRoute requiredRole="buyer">
+                        <ProtectedRoute requiredRole="seller">
                             <BuyerExports />
                         </ProtectedRoute>
                     } />
                     <Route path="/buyer/clients" element={
-                        <ProtectedRoute requiredRole="buyer">
+                        <ProtectedRoute requiredRole="seller">
                             <BuyerClients />
                         </ProtectedRoute>
                     } />
 
-                    {/* Customer Routes */}
+                    {/* Buyer Routes (named 'customer' in folder structure but for buyers) */}
                     <Route path="/customer/orders" element={
-                        <ProtectedRoute requiredRole="customer">
+                        <ProtectedRoute requiredRole="buyer">
                             <CustomerOrders />
                         </ProtectedRoute>
                     } />
                     <Route path="/customer/suppliers" element={
-                        <ProtectedRoute requiredRole="customer">
+                        <ProtectedRoute requiredRole="buyer">
                             <CustomerSuppliers />
                         </ProtectedRoute>
                     } />
@@ -122,9 +122,9 @@ function AppRoutes() {
                     {/* Default Route */}
                     <Route path="/" element={
                         isAuthenticated ? (
-                            user?.userType === 'buyer' ?
+                            user?.userType === 'seller' ?
                                 <Navigate to="/buyer/dashboard" replace /> :
-                                <Navigate to="/marketplace" replace />
+                                <Navigate to="/customer/orders" replace />
                         ) : (
                             <LandingPage />
                         )

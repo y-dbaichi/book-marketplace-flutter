@@ -52,11 +52,17 @@ export default function LocationMap({
 
   const getStatusBadge = (status) => {
     const variants = {
+      // Order statuses
       pending: 'warning',
       confirmed: 'info',
       completed: 'success',
       active: 'success',
-      inactive: 'secondary'
+      inactive: 'secondary',
+      // Book quality
+      excellent: 'success',
+      good: 'primary',
+      fair: 'warning',
+      poor: 'danger'
     };
     return variants[status] || 'secondary';
   };
@@ -105,41 +111,62 @@ export default function LocationMap({
                       <small className="text-muted">{point.email}</small>
                     </div>
                   </div>
-                  
+
                   <div className="mb-2">
                     <i className="bi bi-geo-alt me-1"></i>
                     <small>{point.address}</small>
                   </div>
-                  
+
                   {point.phone && (
                     <div className="mb-2">
                       <i className="bi bi-telephone me-1"></i>
                       <small>{point.phone}</small>
                     </div>
                   )}
-                  
+
+                  {/* Book-specific details for suppliers */}
+                  {type === 'suppliers' && point.price && (
+                    <div className="mt-3 pt-2 border-top">
+                      <div className="d-flex justify-content-between mb-2">
+                        <span className="fw-bold text-success fs-5">{point.price}€</span>
+                        {point.quality && (
+                          <Badge bg={getStatusBadge(point.quality)} className="text-capitalize">
+                            {point.quality}
+                          </Badge>
+                        )}
+                      </div>
+                      {point.quantity && (
+                        <div className="mb-1">
+                          <i className="bi bi-box me-1"></i>
+                          <small>{point.quantity} in stock</small>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Client-specific details */}
                   {point.totalOrders && (
                     <div className="mb-2">
                       <i className="bi bi-cart me-1"></i>
                       <small>{point.totalOrders} orders</small>
                     </div>
                   )}
-                  
+
                   {point.totalSpent && (
                     <div className="mb-2">
                       <i className="bi bi-currency-euro me-1"></i>
                       <small>{point.totalSpent}€ total</small>
                     </div>
                   )}
-                  
-                  {point.status && (
+
+                  {point.status && type !== 'suppliers' && (
                     <div className="mb-2">
                       <Badge bg={getStatusBadge(point.status)} className="text-capitalize">
                         {point.status}
                       </Badge>
                     </div>
                   )}
-                  
+
                   {point.lastOrder && (
                     <div>
                       <small className="text-muted">
