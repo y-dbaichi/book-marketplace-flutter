@@ -51,7 +51,7 @@ router.get('/', optionalAuth, async (req, res) => {
 
     // Execute query
     const books = await Book.find(query)
-      .populate('seller', 'profile location phone')
+      .populate('seller', 'email profile location phone')
       .sort(sortOptions)
       .skip(skip)
       .limit(parseInt(limit));
@@ -63,6 +63,7 @@ router.get('/', optionalAuth, async (req, res) => {
       books,
       pagination: {
         current: parseInt(page),
+        limit: parseInt(limit),
         pages: Math.ceil(total / parseInt(limit)),
         total,
         hasNext: skip + books.length < total,
@@ -85,7 +86,7 @@ router.get('/', optionalAuth, async (req, res) => {
 router.get('/:id', optionalAuth, async (req, res) => {
   try {
     const book = await Book.findById(req.params.id)
-      .populate('seller', 'profile location phone');
+      .populate('seller', 'email profile location phone');
 
     if (!book) {
       return res.status(404).json({ message: 'Book not found' });
@@ -168,7 +169,7 @@ router.post('/', auth, requireSeller, async (req, res) => {
     });
 
     await book.save();
-    await book.populate('seller', 'profile location phone');
+    await book.populate('seller', 'email profile location phone');
 
     res.status(201).json({
       message: 'Book listed successfully',
@@ -213,24 +214,45 @@ router.put('/:id', auth, requireSeller, async (req, res) => {
       status
     } = req.body;
 
+    // Validate updates before applying
+    if (quality !== undefined && !['excellent', 'good', 'fair', 'poor'].includes(quality)) {
+      return res.status(400).json({
+        message: 'Quality must be one of: excellent, good, fair, poor'
+      });
+    }
+
+    if (quantity !== undefined && (quantity < 0 || !Number.isInteger(Number(quantity)))) {
+      return res.status(400).json({
+        message: 'Quantity must be a non-negative integer'
+      });
+    }
+
+    if (price !== undefined && price < 0) {
+      return res.status(400).json({
+        message: 'Price cannot be negative'
+      });
+    }
+
+    if (status !== undefined && !['available', 'reserved', 'sold', 'inactive'].includes(status)) {
+      return res.status(400).json({
+        message: 'Status must be one of: available, reserved, sold, inactive'
+      });
+    }
+
     // Update fields if provided
     if (title) book.title = title;
     if (author) book.author = author;
-    if (quality && ['excellent', 'good', 'fair', 'poor'].includes(quality)) {
-      book.quality = quality;
-    }
-    if (quantity && quantity >= 1) book.quantity = parseInt(quantity);
-    if (price !== undefined && price >= 0) book.price = parseFloat(price);
+    if (quality) book.quality = quality;
+    if (quantity !== undefined) book.quantity = parseInt(quantity);
+    if (price !== undefined) book.price = parseFloat(price);
     if (description !== undefined) book.description = description;
     if (category) book.category = category;
     if (isbn) book.isbn = isbn;
     if (condition) book.condition = condition;
-    if (status && ['available', 'reserved', 'sold', 'inactive'].includes(status)) {
-      book.status = status;
-    }
+    if (status) book.status = status;
 
     await book.save();
-    await book.populate('seller', 'profile location phone');
+    await book.populate('seller', 'email profile location phone');
 
     res.json({
       message: 'Book updated successfully',
@@ -294,6 +316,7 @@ router.get('/my/listings', auth, requireSeller, async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const books = await Book.find(query)
+      .populate('seller', 'email profile location phone')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
@@ -304,6 +327,7 @@ router.get('/my/listings', auth, requireSeller, async (req, res) => {
       books,
       pagination: {
         current: parseInt(page),
+        limit: parseInt(limit),
         pages: Math.ceil(total / parseInt(limit)),
         total,
         hasNext: skip + books.length < total,

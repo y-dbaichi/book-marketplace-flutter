@@ -33,8 +33,13 @@ export default function BuyerOrders() {
       await orderService.updateOrderStatus(orderId, { status: newStatus });
       setOrders(orders => orders.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
       setShowModal(false);
+      // Refresh the order list to get updated data
+      const response = await orderService.getSellerOrders();
+      setOrders(response.orders || []);
     } catch (err) {
-      setError('Failed to update order status.');
+      const errorMessage = err.response?.data?.message || 'Failed to update order status.';
+      setError(errorMessage);
+      console.error('Order update error:', errorMessage);
     }
     setUpdating(false);
   };
@@ -56,7 +61,15 @@ export default function BuyerOrders() {
         Order Management
       </h1>
       <p className="text-muted">Manage customer orders and delivery confirmations.</p>
-      
+
+      {error && (
+        <div className="alert alert-danger alert-dismissible fade show" role="alert">
+          <i className="bi bi-exclamation-triangle-fill me-2"></i>
+          <strong>Error:</strong> {error}
+          <button type="button" className="btn-close" onClick={() => setError('')} aria-label="Close"></button>
+        </div>
+      )}
+
       {loading ? (
         <div className="text-center py-5">
           <div className="spinner-border text-primary" role="status">

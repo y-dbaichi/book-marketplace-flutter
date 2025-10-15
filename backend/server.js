@@ -42,18 +42,18 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Error handling middleware
+// 404 handler - must be AFTER all routes but BEFORE error handler
+app.use('*', (req, res) => {
+  res.status(404).json({ message: 'Route not found' });
+});
+
+// Error handling middleware - must be LAST
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({
     message: 'Something went wrong!',
     error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
   });
-});
-
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({ message: 'Route not found' });
 });
 
 // MongoDB Connection

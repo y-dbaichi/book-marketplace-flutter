@@ -118,14 +118,14 @@ router.post('/login', async (req, res) => {
     // Find user
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
-      return res.status(400).json({
+      return res.status(401).json({
         message: 'Invalid credentials'
       });
     }
 
     // Check if account is active
     if (!user.isActive) {
-      return res.status(400).json({
+      return res.status(403).json({
         message: 'Account is deactivated. Please contact support.'
       });
     }
@@ -133,7 +133,7 @@ router.post('/login', async (req, res) => {
     // Check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(400).json({
+      return res.status(401).json({
         message: 'Invalid credentials'
       });
     }
@@ -202,6 +202,23 @@ router.put('/profile', auth, async (req, res) => {
     const { phone, location, profile } = req.body;
     const user = req.user;
 
+    // Validate location if provided
+    if (location) {
+      if (location.coordinates) {
+        const { latitude, longitude } = location.coordinates;
+        if (latitude !== undefined && (latitude < -90 || latitude > 90)) {
+          return res.status(400).json({
+            message: 'Latitude must be between -90 and 90'
+          });
+        }
+        if (longitude !== undefined && (longitude < -180 || longitude > 180)) {
+          return res.status(400).json({
+            message: 'Longitude must be between -180 and 180'
+          });
+        }
+      }
+    }
+
     // Update fields if provided
     if (phone) user.phone = phone;
     if (location) user.location = location;
@@ -258,6 +275,17 @@ router.post('/refresh', auth, async (req, res) => {
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
+});
+
+// @route   POST /api/auth/logout
+// @desc    Logout user (client-side token removal)
+// @access  Public (optional auth)
+router.post('/logout', (req, res) => {
+  // Since JWT is stateless, logout is handled client-side by removing the token
+  // This endpoint provides a standardized API response
+  res.json({
+    message: 'Logout successful'
+  });
 });
 
 module.exports = router;

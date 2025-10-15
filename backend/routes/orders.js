@@ -207,6 +207,12 @@ router.put('/:id/status', auth, async (req, res) => {
   try {
     const { status, notes } = req.body;
 
+    console.log(`📦 Status update request for order ${req.params.id}:`, {
+      requestedStatus: status,
+      userId: req.user._id,
+      userType: req.user.userType
+    });
+
     if (!status) {
       return res.status(400).json({ message: 'Status is required' });
     }
@@ -228,11 +234,22 @@ router.put('/:id/status', auth, async (req, res) => {
       return res.status(404).json({ message: 'Order not found' });
     }
 
+    console.log(`📋 Current order status: ${order.status}, Requested status: ${status}`);
+
     // Check if user is part of this order
     const isBuyer = order.buyer._id.toString() === req.user._id.toString();
     const isSeller = order.seller._id.toString() === req.user._id.toString();
 
+    console.log(`🔐 Authorization check:`, {
+      isBuyer,
+      isSeller,
+      buyerId: order.buyer._id.toString(),
+      sellerId: order.seller._id.toString(),
+      userId: req.user._id.toString()
+    });
+
     if (!isBuyer && !isSeller) {
+      console.log('❌ Authorization failed: User not part of order');
       return res.status(403).json({ message: 'Not authorized to update this order' });
     }
 
@@ -247,6 +264,12 @@ router.put('/:id/status', auth, async (req, res) => {
         'confirmed': ['delivered', 'refused']
       };
       canUpdate = sellerTransitions[currentStatus]?.includes(status);
+      console.log(`👨‍💼 Seller transition check:`, {
+        currentStatus,
+        requestedStatus: status,
+        allowed: sellerTransitions[currentStatus],
+        canUpdate
+      });
     }
 
     if (isBuyer) {
@@ -254,10 +277,19 @@ router.put('/:id/status', auth, async (req, res) => {
         'pending': ['refused'],
         'confirmed': ['refused']
       };
-      canUpdate = canUpdate || buyerTransitions[currentStatus]?.includes(status);
+      const buyerCanUpdate = buyerTransitions[currentStatus]?.includes(status);
+      canUpdate = canUpdate || buyerCanUpdate;
+      console.log(`👨‍💼 Buyer transition check:`, {
+        currentStatus,
+        requestedStatus: status,
+        allowed: buyerTransitions[currentStatus],
+        buyerCanUpdate,
+        finalCanUpdate: canUpdate
+      });
     }
 
     if (!canUpdate) {
+      console.log(`❌ Transition validation failed: Cannot change from ${currentStatus} to ${status}`);
       return res.status(400).json({
         message: `Cannot change status from ${currentStatus} to ${status}`
       });
@@ -268,18 +300,31 @@ router.put('/:id/status', auth, async (req, res) => {
 
     // CONFIRM ORDER: Decrement book stock
     if (status === 'confirmed' && previousStatus === 'pending' && !order.inventoryUpdated) {
-      const book = await Book.findById(order.book);
+      // Get book ID (handle both populated and non-populated cases)
+      const bookId = order.book._id || order.book;
+      const book = await Book.findById(bookId);
+
+      console.log(`📚 Inventory check:`, {
+        bookId: bookId.toString(),
+        currentStock: book?.quantity,
+        orderQuantity: order.quantity,
+        available: book ? (book.quantity >= order.quantity) : false
+      });
 
       if (!book) {
+        console.log('❌ Book not found');
         return res.status(404).json({ message: 'Book not found' });
       }
 
       // Check if enough stock is available
       if (book.quantity < order.quantity) {
+        console.log(`❌ Insufficient stock: need ${order.quantity}, have ${book.quantity}`);
         return res.status(400).json({
           message: `Insufficient stock. Only ${book.quantity} copies available, but order requires ${order.quantity}`
         });
       }
+
+      console.log(`✅ Stock check passed, updating inventory`);
 
       // Decrement stock
       book.quantity -= order.quantity;
@@ -291,11 +336,52 @@ router.put('/:id/status', auth, async (req, res) => {
 
       await book.save();
       order.inventoryUpdated = true;
+
+      // Auto-refuse other pending orders if stock is now insufficient
+      if (book.quantity === 0 || book.status === 'sold') {
+        const pendingOrders = await Order.find({
+          book: bookId,
+          status: 'pending',
+          _id: { $ne: order._id } // Exclude current order
+        });
+
+        if (pendingOrders.length > 0) {
+          console.log(`🔄 Auto-refusing ${pendingOrders.length} pending orders due to sold-out stock`);
+
+          for (const pendingOrder of pendingOrders) {
+            pendingOrder.status = 'refused';
+            pendingOrder.sellerNotes = `Book is sold out. This order was automatically refused because all stock has been allocated to other confirmed orders.`;
+            await pendingOrder.save();
+          }
+
+          console.log(`✅ Auto-refused ${pendingOrders.length} orders for sold-out book`);
+        }
+      } else if (book.quantity > 0) {
+        // Check if there are pending orders that exceed remaining stock
+        const pendingOrders = await Order.find({
+          book: bookId,
+          status: 'pending',
+          _id: { $ne: order._id }
+        }).sort({ createdAt: 1 }); // First-come-first-served
+
+        if (pendingOrders.length > 0) {
+          for (const pendingOrder of pendingOrders) {
+            if (pendingOrder.quantity > book.quantity) {
+              pendingOrder.status = 'refused';
+              pendingOrder.sellerNotes = `Insufficient stock available. Only ${book.quantity} copies remain, but this order requires ${pendingOrder.quantity}. Order automatically refused.`;
+              await pendingOrder.save();
+              console.log(`⚠️ Auto-refused order ${pendingOrder._id} - needs ${pendingOrder.quantity}, only ${book.quantity} available`);
+            }
+          }
+        }
+      }
     }
 
     // REFUSE ORDER: Restore stock if it was previously confirmed
     if (status === 'refused' && previousStatus === 'confirmed' && order.inventoryUpdated) {
-      const book = await Book.findById(order.book);
+      // Get book ID (handle both populated and non-populated cases)
+      const bookId = order.book._id || order.book;
+      const book = await Book.findById(bookId);
 
       if (book) {
         // Restore stock

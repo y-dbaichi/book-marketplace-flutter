@@ -31,16 +31,22 @@ const auth = async (req, res, next) => {
 
 // Check if user is a seller (book seller)
 const requireSeller = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Authentication required.' });
+  }
   if (req.user.userType !== 'seller') {
-    return res.status(403).json({ message: 'Access denied. Seller account required.' });
+    return res.status(403).json({ message: 'Access denied. Sellers only.' });
   }
   next();
 };
 
 // Check if user is a buyer (book buyer)
 const requireBuyer = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Authentication required.' });
+  }
   if (req.user.userType !== 'buyer') {
-    return res.status(403).json({ message: 'Access denied. Buyer account required.' });
+    return res.status(403).json({ message: 'Access denied. Buyers only.' });
   }
   next();
 };
