@@ -4,6 +4,7 @@ import '../services/order_service.dart';
 import '../models/order.dart';
 import 'login_page.dart';
 import 'order_map_page.dart';
+import 'order_tour_selection_page.dart';
 
 class SellerOrdersPage extends StatefulWidget {
   const SellerOrdersPage({super.key});
@@ -386,18 +387,43 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> with SingleTickerPr
                         },
                       ),
       ),
-      floatingActionButton: confirmedOrders.length >= 2
-          ? FloatingActionButton.extended(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => OrderMapPage(orders: confirmedOrders),
+      floatingActionButton: confirmedOrders.isNotEmpty
+          ? Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (confirmedOrders.length >= 2)
+                  FloatingActionButton.extended(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => OrderTourSelectionPage(confirmedOrders: confirmedOrders),
+                        ),
+                      );
+                    },
+                    heroTag: 'tour',
+                    backgroundColor: Colors.deepPurple,
+                    foregroundColor: Colors.white,
+                    icon: const Icon(Icons.route, color: Colors.white),
+                    label: const Text('Planifier Tournée', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
-                );
-              },
-              icon: const Icon(Icons.map),
-              label: Text('Voir carte (${confirmedOrders.length})'),
+                const SizedBox(height: 12),
+                FloatingActionButton.extended(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => OrderMapPage(orders: confirmedOrders),
+                      ),
+                    );
+                  },
+                  heroTag: 'map',
+                  backgroundColor: Colors.blue[700],
+                  foregroundColor: Colors.white,
+                  icon: const Icon(Icons.map, color: Colors.white),
+                  label: Text('Carte (${confirmedOrders.length})', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
             )
           : null,
     );
