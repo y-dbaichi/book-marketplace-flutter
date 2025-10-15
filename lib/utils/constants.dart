@@ -11,6 +11,11 @@ class AppConstants {
   static const String geojsonExportsEndpoint = '/geojson/my-exports';
   static const String geojsonDownloadEndpoint = '/geojson/download';
   static const String geojsonGenerateEndpoint = '/geojson/generate';
+
+  // Orders endpoints
+  static const String ordersEndpoint = '/orders';
+  static const String sellerOrdersEndpoint = '/orders/my/seller';
+  static const String buyerOrdersEndpoint = '/orders/my/buyer';
   
   static const String tokenKey = 'auth_token';
   static const String tokenExpiryKey = 'token_expiry';

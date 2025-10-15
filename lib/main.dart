@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'pages/login_page.dart';
-import 'pages/home_page.dart';
+import 'pages/seller_orders_page.dart';
 import 'services/auth_service.dart';
 
 void main() async {
@@ -53,7 +53,7 @@ class _SplashPageState extends State<SplashPage> {
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (_) => isValid ? HomePage() : LoginPage(),
+            builder: (_) => isValid ? SellerOrdersPage() : LoginPage(),
           ),
         );
       }
