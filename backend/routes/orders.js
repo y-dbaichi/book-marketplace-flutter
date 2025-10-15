@@ -92,9 +92,9 @@ router.post('/', auth, requireBuyer, async (req, res) => {
     await order.save();
 
     await order.populate([
-      { path: 'buyer', select: 'profile phone location' },
-      { path: 'seller', select: 'profile phone location' },
-      { path: 'book', select: 'title author price seller', populate: [{ path: 'seller', select: 'profile phone location' }] }
+      { path: 'buyer', select: 'email profile phone location' },
+      { path: 'seller', select: 'email profile phone location' },
+      { path: 'book', select: 'title author price seller', populate: [{ path: 'seller', select: 'email profile phone location' }] }
     ]);
 
     return res.status(201).json({ message: 'Order created successfully', order: simplifyOrderResponse(order) });
@@ -119,12 +119,12 @@ router.get('/my/buyer', auth, requireBuyer, async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const orders = await Order.find(query)
-      .populate('seller', 'profile phone location')
+      .populate('seller', 'email profile phone location')
       .populate({
         path: 'book',
         select: 'title author price seller',
         populate: [
-          { path: 'seller', select: 'profile phone location' }
+          { path: 'seller', select: 'email profile phone location' }
         ]
       })
       .sort({ createdAt: -1 })
@@ -166,12 +166,12 @@ router.get('/my/seller', auth, requireSeller, async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const orders = await Order.find(query)
-      .populate('buyer', 'profile phone location')
+      .populate('buyer', 'email profile phone location')
       .populate({
         path: 'book',
         select: 'title author price seller',
         populate: [
-          { path: 'seller', select: 'profile phone location' }
+          { path: 'seller', select: 'email profile phone location' }
         ]
       })
       .sort({ createdAt: -1 })
@@ -226,8 +226,8 @@ router.put('/:id/status', auth, async (req, res) => {
     }
 
     const order = await Order.findById(req.params.id)
-      .populate('buyer', 'profile phone')
-      .populate('seller', 'profile phone')
+      .populate('buyer', 'email profile phone location')
+      .populate('seller', 'email profile phone location')
       .populate('book', 'title author');
 
     if (!order) {
