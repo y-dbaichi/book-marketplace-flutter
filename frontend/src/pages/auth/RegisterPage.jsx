@@ -12,7 +12,7 @@ export default function RegisterPage() {
     email: '',
     password: '',
     confirmPassword: '',
-    userType: 'customer',
+    userType: 'buyer',
     phone: '',
     firstName: '',
     lastName: '',
@@ -184,7 +184,7 @@ export default function RegisterPage() {
         profile: {
           firstName: formData.firstName.trim(),
           lastName: formData.lastName.trim(),
-          bio: formData.bio?.trim() || `${formData.userType === 'buyer' ? 'Book seller' : 'Book enthusiast'} from ${formData.locationName}`
+          bio: formData.bio?.trim() || `${formData.userType === 'seller' ? 'Book seller' : 'Book enthusiast'} from ${formData.locationName}`
         }
       };
 
@@ -267,8 +267,8 @@ export default function RegisterPage() {
                         <Form.Label className="fw-semibold mb-3">I want to:</Form.Label>
                         <Row>
                           <Col md={6}>
-                            <div className={`card h-100 cursor-pointer border-2 ${formData.userType === 'customer' ? 'border-primary bg-primary bg-opacity-10' : 'border-light'
-                              }`} onClick={() => setFormData(prev => ({ ...prev, userType: 'customer' }))}>
+                            <div className={`card h-100 cursor-pointer border-2 ${formData.userType === 'buyer' ? 'border-primary bg-primary bg-opacity-10' : 'border-light'
+                              }`} onClick={() => setFormData(prev => ({ ...prev, userType: 'buyer' }))}>
                               <div className="card-body text-center p-4">
                                 <i className="bi bi-bag-heart fs-1 text-primary mb-3"></i>
                                 <h5 className="fw-semibold">Buy Books</h5>
@@ -276,8 +276,8 @@ export default function RegisterPage() {
                                 <Form.Check
                                   type="radio"
                                   name="userType"
-                                  value="customer"
-                                  checked={formData.userType === 'customer'}
+                                  value="buyer"
+                                  checked={formData.userType === 'buyer'}
                                   onChange={handleChange}
                                   className="mt-3"
                                 />
@@ -285,8 +285,8 @@ export default function RegisterPage() {
                             </div>
                           </Col>
                           <Col md={6}>
-                            <div className={`card h-100 cursor-pointer border-2 ${formData.userType === 'buyer' ? 'border-primary bg-primary bg-opacity-10' : 'border-light'
-                              }`} onClick={() => setFormData(prev => ({ ...prev, userType: 'buyer' }))}>
+                            <div className={`card h-100 cursor-pointer border-2 ${formData.userType === 'seller' ? 'border-primary bg-primary bg-opacity-10' : 'border-light'
+                              }`} onClick={() => setFormData(prev => ({ ...prev, userType: 'seller' }))}>
                               <div className="card-body text-center p-4">
                                 <i className="bi bi-shop fs-1 text-success mb-3"></i>
                                 <h5 className="fw-semibold">Sell Books</h5>
@@ -294,8 +294,8 @@ export default function RegisterPage() {
                                 <Form.Check
                                   type="radio"
                                   name="userType"
-                                  value="buyer"
-                                  checked={formData.userType === 'buyer'}
+                                  value="seller"
+                                  checked={formData.userType === 'seller'}
                                   onChange={handleChange}
                                   className="mt-3"
                                 />
@@ -402,13 +402,13 @@ export default function RegisterPage() {
                       </Row>
 
                       <Input
-                        label={formData.userType === 'buyer' ? 'Store/Business Name' : 'Location Name'}
+                        label={formData.userType === 'seller' ? 'Store/Business Name' : 'Location Name'}
                         name="locationName"
                         value={formData.locationName}
                         onChange={handleChange}
                         error={errors.locationName}
                         required
-                        placeholder={formData.userType === 'buyer' ? 'My Bookstore' : 'My Location'}
+                        placeholder={formData.userType === 'seller' ? 'My Bookstore' : 'My Location'}
                       />
 
                       <Input
