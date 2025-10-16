@@ -16,23 +16,46 @@ class AuthService {
   User? get currentUser => _currentUser;
 
   Future<AuthResponse> login(String email, String password) async {
-    print('🔐 Attempting login for: $email');
-    final request = LoginRequest(email: email, password: password);
-    final response = await _api.post(AppConstants.loginEndpoint, data: request.toJson());
-    final authResponse = AuthResponse.fromJson(response.data);
+    try {
+      print('🔐 Attempting login for: $email');
+      final request = LoginRequest(email: email, password: password);
+      final response = await _api.post(AppConstants.loginEndpoint, data: request.toJson());
+      final authResponse = AuthResponse.fromJson(response.data);
 
-    // Check if user is a seller (Flutter app is for sellers only)
-    if (authResponse.user.userType != 'seller') {
-      print('❌ Login rejected: User is not a seller (type: ${authResponse.user.userType})');
-      throw Exception('Cette application est réservée aux vendeurs uniquement. Veuillez utiliser la version web pour les acheteurs.');
+      // Check if user is a seller (Flutter app is for sellers only)
+      if (authResponse.user.userType != 'seller') {
+        print('❌ Login rejected: User is not a seller (type: ${authResponse.user.userType})');
+        throw Exception('Cette application est réservée aux vendeurs uniquement. Veuillez utiliser la version web pour les acheteurs.');
+      }
+
+      await _storage.saveToken(authResponse.token);
+      await _storage.saveUser(authResponse.user.toJson());
+      _currentUser = authResponse.user;
+
+      print('✅ Login successful: ${authResponse.user.email} (seller)');
+      return authResponse;
+    } catch (e) {
+      print('❌ Login error: $e');
+
+      // Handle DioException with proper error messages
+      if (e.toString().contains('DioException')) {
+        // Check for specific HTTP status codes
+        if (e.toString().contains('401') || e.toString().contains('400')) {
+          throw Exception('Email ou mot de passe incorrect');
+        } else if (e.toString().contains('404')) {
+          throw Exception('Service de connexion indisponible');
+        } else if (e.toString().contains('500')) {
+          throw Exception('Erreur du serveur. Veuillez réessayer plus tard');
+        } else if (e.toString().contains('SocketException') || e.toString().contains('Connection')) {
+          throw Exception('Pas de connexion internet. Vérifiez votre réseau');
+        }
+        // Generic network error
+        throw Exception('Erreur de connexion. Vérifiez votre connexion internet');
+      }
+
+      // Re-throw if it's already a clean exception (like seller check)
+      rethrow;
     }
-
-    await _storage.saveToken(authResponse.token);
-    await _storage.saveUser(authResponse.user.toJson());
-    _currentUser = authResponse.user;
-
-    print('✅ Login successful: ${authResponse.user.email} (seller)');
-    return authResponse;
   }
 
   Future<void> logout() async {
