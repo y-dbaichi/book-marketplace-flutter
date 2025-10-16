@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Flutter (Web - Regular Chrome)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "args": [
+        "--web-browser-flag=--disable-features=IsolateOrigins,site-per-process",
+        "--web-browser-flag=--disable-web-security",
+        "--web-browser-flag=--user-data-dir=/tmp/flutter-chrome"
+      ]
+    },
+    {
+      "name": "Flutter (Web Server - Open Manually)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "deviceId": "web-server"
+    }
+  ]
+}

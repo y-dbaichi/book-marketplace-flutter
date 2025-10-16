@@ -20,12 +20,18 @@ class AuthService {
     final request = LoginRequest(email: email, password: password);
     final response = await _api.post(AppConstants.loginEndpoint, data: request.toJson());
     final authResponse = AuthResponse.fromJson(response.data);
-    
+
+    // Check if user is a seller (Flutter app is for sellers only)
+    if (authResponse.user.userType != 'seller') {
+      print('❌ Login rejected: User is not a seller (type: ${authResponse.user.userType})');
+      throw Exception('Cette application est réservée aux vendeurs uniquement. Veuillez utiliser la version web pour les acheteurs.');
+    }
+
     await _storage.saveToken(authResponse.token);
     await _storage.saveUser(authResponse.user.toJson());
     _currentUser = authResponse.user;
-    
-    print('✅ Login successful: ${authResponse.user.email}');
+
+    print('✅ Login successful: ${authResponse.user.email} (seller)');
     return authResponse;
   }
 
@@ -38,10 +44,19 @@ class AuthService {
   Future<bool> loadUser() async {
     final hasToken = await _storage.hasToken();
     if (!hasToken) return false;
-    
+
     final userData = await _storage.getUser();
     if (userData != null) {
-      _currentUser = User.fromJson(userData);
+      final user = User.fromJson(userData);
+
+      // Check if user is a seller (Flutter app is for sellers only)
+      if (user.userType != 'seller') {
+        print('❌ Auto-logout: User is not a seller (type: ${user.userType})');
+        await logout();
+        return false;
+      }
+
+      _currentUser = user;
       return true;
     }
     return false;
@@ -57,6 +72,13 @@ class AuthService {
       print('🔄 Manually refreshing auth token...');
       final response = await _api.post(AppConstants.refreshEndpoint);
       final authResponse = AuthResponse.fromJson(response.data);
+
+      // Check if user is a seller (Flutter app is for sellers only)
+      if (authResponse.user.userType != 'seller') {
+        print('❌ Token refresh rejected: User is not a seller');
+        await logout();
+        return false;
+      }
 
       await _storage.saveToken(authResponse.token);
       await _storage.saveUser(authResponse.user.toJson());

@@ -14,7 +14,7 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _authService = AuthService();
-  
+
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -45,8 +45,14 @@ class _LoginPageState extends State<LoginPage> {
         );
       }
     } catch (e) {
+      // Clean up error message - remove "Exception:" prefix
+      String errorMsg = e.toString();
+      if (errorMsg.startsWith('Exception: ')) {
+        errorMsg = errorMsg.substring(11); // Remove "Exception: " prefix
+      }
+
       setState(() {
-        _errorMessage = 'Login failed: ${e.toString()}';
+        _errorMessage = errorMsg;
         _isLoading = false;
       });
     }
@@ -79,28 +85,33 @@ class _LoginPageState extends State<LoginPage> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          Icons.book,
-                          size: 64,
-                          color: Colors.blue.shade700,
-                        ),
+                        Icon(Icons.book, size: 64, color: Colors.blue.shade700),
                         const SizedBox(height: 16),
                         Text(
                           'Book Delivery',
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue.shade700,
-                          ),
+                          style: Theme.of(context).textTheme.headlineMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue.shade700,
+                              ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Route Planning App',
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: Colors.grey.shade600,
-                          ),
+                          'Application Vendeurs',
+                          style: Theme.of(context).textTheme.bodyLarge
+                              ?.copyWith(
+                                color: Colors.grey.shade600,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Planification de tournées de livraison',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: Colors.grey.shade500),
                         ),
                         const SizedBox(height: 32),
-                        
+
                         // Email Field
                         TextFormField(
                           controller: _emailController,
@@ -123,7 +134,7 @@ class _LoginPageState extends State<LoginPage> {
                           },
                         ),
                         const SizedBox(height: 16),
-                        
+
                         // Password Field
                         TextFormField(
                           controller: _passwordController,
@@ -142,7 +153,7 @@ class _LoginPageState extends State<LoginPage> {
                             return null;
                           },
                         ),
-                        
+
                         if (_errorMessage != null) ...[
                           const SizedBox(height: 16),
                           Container(
@@ -159,16 +170,18 @@ class _LoginPageState extends State<LoginPage> {
                                 Expanded(
                                   child: Text(
                                     _errorMessage!,
-                                    style: TextStyle(color: Colors.red.shade700),
+                                    style: TextStyle(
+                                      color: Colors.red.shade700,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
                           ),
                         ],
-                        
+
                         const SizedBox(height: 24),
-                        
+
                         // Login Button
                         SizedBox(
                           width: double.infinity,
