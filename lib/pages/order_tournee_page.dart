@@ -492,6 +492,27 @@ class _OrderTourneePageState extends State<OrderTourneePage> {
                 ),
               ],
               const SizedBox(height: 24),
+              // Navigation button (prominent)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => _openNavigation(order),
+                  icon: const Icon(Icons.navigation, size: 24),
+                  label: const Text(
+                    'Démarrer la navigation',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.indigo[600],
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
@@ -578,6 +599,106 @@ class _OrderTourneePageState extends State<OrderTourneePage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Impossible d\'ouvrir l\'application téléphone')),
+        );
+      }
+    }
+  }
+
+  Future<void> _openNavigation(Order order) async {
+    if (order.buyerLocation == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Localisation non disponible')),
+      );
+      return;
+    }
+
+    final lat = order.buyerLocation!.latitude;
+    final lng = order.buyerLocation!.longitude;
+
+    // Google Maps URL - navigate to this single delivery
+    final Uri googleMapsUri = Uri.parse(
+      'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=driving'
+    );
+
+    try {
+      if (await canLaunchUrl(googleMapsUri)) {
+        await launchUrl(googleMapsUri, mode: LaunchMode.externalApplication);
+      } else {
+        throw Exception('Cannot launch navigation');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: $e'),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _openFullRouteNavigation() async {
+    if (_startPoint == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Veuillez d\'abord calculer la tournée'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    final ordersToNavigate = _optimizedOrders.isNotEmpty ? _optimizedOrders : widget.orders;
+
+    if (ordersToNavigate.isEmpty) {
+      return;
+    }
+
+    // Build Google Maps URL with multiple waypoints
+    final StringBuffer urlBuffer = StringBuffer();
+    urlBuffer.write('https://www.google.com/maps/dir/?api=1');
+
+    // Origin (starting point)
+    urlBuffer.write('&origin=${_startPoint!.latitude},${_startPoint!.longitude}');
+
+    // Waypoints (all deliveries except the last one)
+    if (ordersToNavigate.length > 1) {
+      urlBuffer.write('&waypoints=');
+      for (int i = 0; i < ordersToNavigate.length - 1; i++) {
+        final loc = ordersToNavigate[i].buyerLocation;
+        if (loc != null) {
+          if (i > 0) urlBuffer.write('|');
+          urlBuffer.write('${loc.latitude},${loc.longitude}');
+        }
+      }
+    }
+
+    // Destination (last delivery)
+    final lastLoc = ordersToNavigate.last.buyerLocation;
+    if (lastLoc != null) {
+      urlBuffer.write('&destination=${lastLoc.latitude},${lastLoc.longitude}');
+    }
+
+    urlBuffer.write('&travelmode=driving');
+
+    final Uri googleMapsUri = Uri.parse(urlBuffer.toString());
+
+    print('🧭 Full Route Navigation:');
+    print('   Deliveries: ${ordersToNavigate.length}');
+    print('   URL: $googleMapsUri');
+
+    try {
+      if (await canLaunchUrl(googleMapsUri)) {
+        await launchUrl(googleMapsUri, mode: LaunchMode.externalApplication);
+      } else {
+        throw Exception('Cannot launch navigation');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: $e'),
+          ),
         );
       }
     }
@@ -679,6 +800,18 @@ class _OrderTourneePageState extends State<OrderTourneePage> {
                         ),
                       ),
                     ),
+                    if (_routeInfo.isNotEmpty) ...[
+                      ElevatedButton.icon(
+                        onPressed: _openFullRouteNavigation,
+                        icon: const Icon(Icons.navigation, size: 20),
+                        label: const Text('Naviguer'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.indigo[600],
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
                     ElevatedButton.icon(
                       onPressed: _isLoadingRoute ? null : _calculateRoute,
                       icon: _isLoadingRoute
