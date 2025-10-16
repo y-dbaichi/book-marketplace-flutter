@@ -219,8 +219,6 @@ class _OrderTourneePageState extends State<OrderTourneePage> {
       double? distance;
       double? duration;
 
-      print('🔍 Processing route data: ${routeData.keys}');
-
       if (routeData.containsKey('features')) {
         final features = routeData['features'] as List;
         if (features.isNotEmpty) {
@@ -232,16 +230,12 @@ class _OrderTourneePageState extends State<OrderTourneePage> {
             routePoints = coordinates
                 .map((coord) => LatLng(coord[1], coord[0]))
                 .toList();
-            print('✅ Extracted ${routePoints.length} route points');
           }
 
           final summary = properties?['summary'];
           if (summary != null) {
             distance = summary['distance']?.toDouble();
             duration = summary['duration']?.toDouble();
-            print('📊 API Distance: $distance m, Duration: $duration s');
-          } else {
-            print('⚠️ No summary found in properties');
           }
         }
       }
@@ -259,24 +253,20 @@ class _OrderTourneePageState extends State<OrderTourneePage> {
           ];
         });
 
-        // Always calculate distance from route points as primary method
+        // Calculate distance from route points
         double totalDistance = 0;
         for (int i = 0; i < routePoints.length - 1; i++) {
           totalDistance += _calculateDistance(routePoints[i], routePoints[i + 1]);
         }
 
-        print('🧮 Calculated distance: $totalDistance meters');
-
-        // Use calculated distance (in meters) as it's more reliable
+        // Use calculated distance and API duration (accurate road-based estimates)
         final finalDistance = totalDistance;
         final finalDuration = (duration != null && duration > 0)
             ? duration
-            : (totalDistance / 1000) / 40 * 3600; // 40 km/h in seconds
+            : (totalDistance / 1000) / 40 * 3600; // Fallback: 40 km/h in seconds
 
         final distanceKm = (finalDistance / 1000).toStringAsFixed(1);
         final durationMin = (finalDuration / 60).toStringAsFixed(0);
-
-        print('✅ Final: $distanceKm km, $durationMin min');
 
         setState(() {
           _routeInfo = '📏 $distanceKm km • ⏱️ $durationMin min';
@@ -615,10 +605,21 @@ class _OrderTourneePageState extends State<OrderTourneePage> {
     final lat = order.buyerLocation!.latitude;
     final lng = order.buyerLocation!.longitude;
 
-    // Google Maps URL - navigate to this single delivery
-    final Uri googleMapsUri = Uri.parse(
-      'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=driving'
-    );
+    // Build Google Maps URL - include origin if available
+    final StringBuffer urlBuffer = StringBuffer();
+    urlBuffer.write('https://www.google.com/maps/dir/?api=1');
+
+    // Add origin (starting point) if set
+    if (_startPoint != null) {
+      urlBuffer.write('&origin=${_startPoint!.latitude},${_startPoint!.longitude}');
+    }
+
+    // Add destination
+    urlBuffer.write('&destination=$lat,$lng');
+    urlBuffer.write('&travelmode=driving');
+
+    final String url = urlBuffer.toString();
+    final Uri googleMapsUri = Uri.parse(url);
 
     try {
       if (await canLaunchUrl(googleMapsUri)) {
@@ -629,8 +630,8 @@ class _OrderTourneePageState extends State<OrderTourneePage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur: $e'),
+          const SnackBar(
+            content: Text('Impossible d\'ouvrir la navigation'),
           ),
         );
       }
@@ -683,10 +684,6 @@ class _OrderTourneePageState extends State<OrderTourneePage> {
 
     final Uri googleMapsUri = Uri.parse(urlBuffer.toString());
 
-    print('🧭 Full Route Navigation:');
-    print('   Deliveries: ${ordersToNavigate.length}');
-    print('   URL: $googleMapsUri');
-
     try {
       if (await canLaunchUrl(googleMapsUri)) {
         await launchUrl(googleMapsUri, mode: LaunchMode.externalApplication);
@@ -696,8 +693,8 @@ class _OrderTourneePageState extends State<OrderTourneePage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur: $e'),
+          const SnackBar(
+            content: Text('Impossible d\'ouvrir la navigation'),
           ),
         );
       }
