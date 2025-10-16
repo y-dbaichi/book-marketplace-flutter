@@ -116,6 +116,7 @@ class _LoginPageState extends State<LoginPage> {
                         TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next, // Move to next field on Enter
                           decoration: InputDecoration(
                             labelText: 'Email',
                             prefixIcon: const Icon(Icons.email),
@@ -139,6 +140,7 @@ class _LoginPageState extends State<LoginPage> {
                         TextFormField(
                           controller: _passwordController,
                           obscureText: true,
+                          textInputAction: TextInputAction.done, // Show "Done" button
                           decoration: InputDecoration(
                             labelText: 'Password',
                             prefixIcon: const Icon(Icons.lock),
@@ -152,6 +154,7 @@ class _LoginPageState extends State<LoginPage> {
                             }
                             return null;
                           },
+                          onFieldSubmitted: (_) => _handleLogin(), // Submit on Enter
                         ),
 
                         if (_errorMessage != null) ...[
