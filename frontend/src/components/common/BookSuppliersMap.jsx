@@ -108,7 +108,7 @@ export default function BookSuppliersMap({
                             </Badge>
                           </div>
                           <div className="d-flex justify-content-between align-items-center mb-2">
-                            <span className="fw-bold text-success fs-5">{supplier.price}€</span>
+                            <span className="fw-bold text-success fs-5">{supplier.price} MAD</span>
                             <small className="text-muted">{supplier.quantity} in stock</small>
                           </div>
                           <div className="text-truncate">

@@ -65,10 +65,6 @@ export default function Header() {
                       <i className="bi bi-bag-check me-2"></i>
                       My Orders
                     </Nav.Link>
-                    <Nav.Link as={Link} to="/customer/suppliers" className="nav-link-enhanced">
-                      <i className="bi bi-shop me-2"></i>
-                      My Suppliers
-                    </Nav.Link>
                   </>
                 )}
               </>

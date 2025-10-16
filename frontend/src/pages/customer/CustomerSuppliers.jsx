@@ -121,7 +121,7 @@ export default function CustomerSuppliers() {
                         </div>
                         <div className="d-flex justify-content-between mb-2">
                           <span className="text-muted">Total Spent:</span>
-                          <strong className="text-success">{supplier.totalSpent.toFixed(2)}€</strong>
+                          <strong className="text-success">{supplier.totalSpent.toFixed(2)} MAD</strong>
                         </div>
                         <div className="d-flex justify-content-between">
                           <span className="text-muted">Last Order:</span>

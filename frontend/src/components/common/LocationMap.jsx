@@ -128,7 +128,7 @@ export default function LocationMap({
                   {type === 'suppliers' && point.price && (
                     <div className="mt-3 pt-2 border-top">
                       <div className="d-flex justify-content-between mb-2">
-                        <span className="fw-bold text-success fs-5">{point.price}€</span>
+                        <span className="fw-bold text-success fs-5">{point.price} MAD</span>
                         {point.quality && (
                           <Badge bg={getStatusBadge(point.quality)} className="text-capitalize">
                             {point.quality}
@@ -155,7 +155,7 @@ export default function LocationMap({
                   {point.totalSpent && (
                     <div className="mb-2">
                       <i className="bi bi-currency-euro me-1"></i>
-                      <small>{point.totalSpent}€ total</small>
+                      <small>{point.totalSpent} MAD total</small>
                     </div>
                   )}
 

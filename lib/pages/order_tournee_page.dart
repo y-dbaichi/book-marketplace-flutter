@@ -219,6 +219,8 @@ class _OrderTourneePageState extends State<OrderTourneePage> {
       double? distance;
       double? duration;
 
+      print('🔍 Processing route data: ${routeData.keys}');
+
       if (routeData.containsKey('features')) {
         final features = routeData['features'] as List;
         if (features.isNotEmpty) {
@@ -230,12 +232,16 @@ class _OrderTourneePageState extends State<OrderTourneePage> {
             routePoints = coordinates
                 .map((coord) => LatLng(coord[1], coord[0]))
                 .toList();
+            print('✅ Extracted ${routePoints.length} route points');
           }
 
           final summary = properties?['summary'];
           if (summary != null) {
             distance = summary['distance']?.toDouble();
             duration = summary['duration']?.toDouble();
+            print('📊 API Distance: $distance m, Duration: $duration s');
+          } else {
+            print('⚠️ No summary found in properties');
           }
         }
       }
@@ -253,13 +259,28 @@ class _OrderTourneePageState extends State<OrderTourneePage> {
           ];
         });
 
-        if (distance != null && duration != null) {
-          final distanceKm = (distance / 1000).toStringAsFixed(1);
-          final durationMin = (duration / 60).toStringAsFixed(0);
-          setState(() {
-            _routeInfo = '📏 $distanceKm km • ⏱️ $durationMin min';
-          });
+        // Always calculate distance from route points as primary method
+        double totalDistance = 0;
+        for (int i = 0; i < routePoints.length - 1; i++) {
+          totalDistance += _calculateDistance(routePoints[i], routePoints[i + 1]);
         }
+
+        print('🧮 Calculated distance: $totalDistance meters');
+
+        // Use calculated distance (in meters) as it's more reliable
+        final finalDistance = totalDistance;
+        final finalDuration = (duration != null && duration > 0)
+            ? duration
+            : (totalDistance / 1000) / 40 * 3600; // 40 km/h in seconds
+
+        final distanceKm = (finalDistance / 1000).toStringAsFixed(1);
+        final durationMin = (finalDuration / 60).toStringAsFixed(0);
+
+        print('✅ Final: $distanceKm km, $durationMin min');
+
+        setState(() {
+          _routeInfo = '📏 $distanceKm km • ⏱️ $durationMin min';
+        });
 
         _fitMapToRoute(routePoints);
       }

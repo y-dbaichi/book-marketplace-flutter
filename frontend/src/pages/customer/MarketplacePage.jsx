@@ -323,7 +323,7 @@ export default function MarketplacePage() {
                         {book.quality}
                       </Badge>
                       <span className="fw-bold text-primary fs-5">
-                        {book.price}€
+                        {book.price} MAD
                       </span>
                     </div>
 
@@ -394,7 +394,7 @@ export default function MarketplacePage() {
                 <h4 className="fw-bold">{selectedBook.title}</h4>
                 <p className="text-muted mb-2">by {selectedBook.author}</p>
                 <div className="d-flex justify-content-center align-items-center gap-2">
-                  <span className="price-display">{selectedBook.price}€</span>
+                  <span className="price-display">{selectedBook.price} MAD</span>
                   <span className="text-muted">per item</span>
                 </div>
               </div>
@@ -436,7 +436,7 @@ export default function MarketplacePage() {
                   </Button>
                   <div className="ms-auto">
                     <small className="text-muted d-block">Available: {selectedBook.quantity}</small>
-                    <strong className="text-success">{(selectedBook.price * orderQuantity).toFixed(2)}€ Total</strong>
+                    <strong className="text-success">{(selectedBook.price * orderQuantity).toFixed(2)} MAD Total</strong>
                   </div>
                 </div>
               </div>
@@ -504,7 +504,7 @@ export default function MarketplacePage() {
                   ) : (
                     <>
                       <i className="bi bi-check-circle me-2"></i>
-                      Place Order ({(selectedBook.price * orderQuantity).toFixed(2)}€)
+                      Place Order ({(selectedBook.price * orderQuantity).toFixed(2)} MAD)
                     </>
                   )}
                 </Button>
