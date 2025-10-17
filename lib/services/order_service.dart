@@ -56,7 +56,7 @@ class OrderService {
         if (notes != null) 'notes': notes,
       };
 
-      final response = await _api.post(
+      final response = await _api.put(
         '${AppConstants.ordersEndpoint}/$orderId/status',
         data: data,
       );
@@ -66,7 +66,12 @@ class OrderService {
       return order;
     } catch (e) {
       print('❌ Failed to mark order as delivered: $e');
-      rethrow;
+      if (e.toString().contains('404')) {
+        throw Exception('Commande non trouvée');
+      } else if (e.toString().contains('400')) {
+        throw Exception('Impossible de marquer comme livrée. Vérifiez le statut actuel.');
+      }
+      throw Exception('Erreur lors de la mise à jour du statut');
     }
   }
 
@@ -80,7 +85,7 @@ class OrderService {
         if (notes != null) 'notes': notes,
       };
 
-      final response = await _api.post(
+      final response = await _api.put(
         '${AppConstants.ordersEndpoint}/$orderId/status',
         data: data,
       );
@@ -90,7 +95,12 @@ class OrderService {
       return order;
     } catch (e) {
       print('❌ Failed to confirm order: $e');
-      rethrow;
+      if (e.toString().contains('404')) {
+        throw Exception('Commande non trouvée');
+      } else if (e.toString().contains('400')) {
+        throw Exception('Impossible de confirmer. Vérifiez le statut actuel.');
+      }
+      throw Exception('Erreur lors de la confirmation');
     }
   }
 
@@ -104,7 +114,7 @@ class OrderService {
         if (notes != null) 'notes': notes,
       };
 
-      final response = await _api.post(
+      final response = await _api.put(
         '${AppConstants.ordersEndpoint}/$orderId/status',
         data: data,
       );
@@ -114,7 +124,12 @@ class OrderService {
       return order;
     } catch (e) {
       print('❌ Failed to refuse order: $e');
-      rethrow;
+      if (e.toString().contains('404')) {
+        throw Exception('Commande non trouvée');
+      } else if (e.toString().contains('400')) {
+        throw Exception('Impossible de refuser. Vérifiez le statut actuel.');
+      }
+      throw Exception('Erreur lors du refus');
     }
   }
 

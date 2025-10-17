@@ -520,9 +520,9 @@ class _OrderTourneePageState extends State<OrderTourneePage> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () => _markAsDelivered(order),
-                      icon: const Icon(Icons.check_circle),
-                      label: const Text('Livrée'),
+                      onPressed: () => _showStatusChangeDialog(order),
+                      icon: const Icon(Icons.swap_horiz),
+                      label: const Text('Statut'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,
@@ -701,54 +701,128 @@ class _OrderTourneePageState extends State<OrderTourneePage> {
     }
   }
 
-  Future<void> _markAsDelivered(Order order) async {
+  Future<void> _showStatusChangeDialog(Order order) async {
     Navigator.pop(context); // Close bottom sheet
 
-    final confirmed = await showDialog<bool>(
+    // Define status options based on current status
+    final Map<String, String> availableStatuses = {};
+
+    if (order.status == 'pending') {
+      availableStatuses['confirmed'] = '✅ À livrer';
+      availableStatuses['refused'] = '❌ Refuser';
+    } else if (order.status == 'confirmed') {
+      availableStatuses['delivered'] = '📦 Livrée';
+      availableStatuses['refused'] = '❌ Refuser';
+    }
+
+    if (availableStatuses.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Aucun changement de statut disponible'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    final selectedStatus = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirmer la livraison'),
-        content: Text('Marquer "${order.book.title}" comme livrée ?'),
+        title: Text('Changer le statut de "${order.book.title}"'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Statut actuel: ${order.statusDisplay}',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[700],
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text('Choisissez le nouveau statut:'),
+            const SizedBox(height: 12),
+            ...availableStatuses.entries.map((entry) =>
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context, entry.key),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 48),
+                    backgroundColor: entry.key == 'delivered'
+                        ? Colors.green
+                        : entry.key == 'confirmed'
+                            ? Colors.blue
+                            : Colors.red,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text(entry.value),
+                ),
+              ),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(context),
             child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Confirmer'),
           ),
         ],
       ),
     );
 
-    if (confirmed == true) {
+    if (selectedStatus != null) {
       try {
-        await _orderService.markAsDelivered(order.id);
+        await _orderService.updateOrderStatus(order.id, selectedStatus);
 
         if (mounted) {
+          String successMessage = '';
+          switch (selectedStatus) {
+            case 'confirmed':
+              successMessage = '✅ ${order.book.title} confirmée et prête à livrer';
+              break;
+            case 'delivered':
+              successMessage = '📦 ${order.book.title} marquée comme livrée';
+              break;
+            case 'refused':
+              successMessage = '❌ ${order.book.title} refusée';
+              break;
+          }
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('✅ ${order.book.title} marquée comme livrée'),
+              content: Text(successMessage),
               backgroundColor: Colors.green,
             ),
           );
 
-          // Remove from current route
-          setState(() {
-            widget.orders.remove(order);
-            _optimizedOrders.remove(order);
-          });
+          // Remove from current route if delivered
+          if (selectedStatus == 'delivered') {
+            setState(() {
+              widget.orders.remove(order);
+              _optimizedOrders.remove(order);
+            });
 
-          // If no more orders, go back
-          if (widget.orders.isEmpty) {
-            Navigator.pop(context);
+            // If no more orders, go back
+            if (widget.orders.isEmpty) {
+              Navigator.pop(context);
+            }
           }
         }
       } catch (e) {
         if (mounted) {
+          // Clean up error message
+          String errorMsg = e.toString();
+          if (errorMsg.startsWith('Exception: ')) {
+            errorMsg = errorMsg.substring(11);
+          }
+
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('❌ Erreur: $e')),
+            SnackBar(
+              content: Text(errorMsg),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }

@@ -81,42 +81,117 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> with SingleTickerPr
     }
   }
 
-  Future<void> _markAsDelivered(Order order) async {
-    final confirmed = await showDialog<bool>(
+  Future<void> _showStatusChangeDialog(Order order) async {
+    // Define status options based on current status
+    final Map<String, String> availableStatuses = {};
+
+    if (order.status == 'pending') {
+      availableStatuses['confirmed'] = '✅ À livrer';
+      availableStatuses['refused'] = '❌ Refuser';
+    } else if (order.status == 'confirmed') {
+      availableStatuses['delivered'] = '📦 Livrée';
+      availableStatuses['refused'] = '❌ Refuser';
+    }
+
+    if (availableStatuses.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Aucun changement de statut disponible'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    final selectedStatus = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Marquer comme livrée'),
-        content: Text('Confirmer la livraison pour ${order.buyerName} ?'),
+        title: Text('Changer le statut de "${order.book.title}"'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Statut actuel: ${order.statusDisplay}',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[700],
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text('Choisissez le nouveau statut:'),
+            const SizedBox(height: 12),
+            ...availableStatuses.entries.map((entry) =>
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context, entry.key),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 48),
+                    backgroundColor: entry.key == 'delivered'
+                        ? Colors.green
+                        : entry.key == 'confirmed'
+                            ? Colors.blue
+                            : Colors.red,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text(entry.value),
+                ),
+              ),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(context),
             child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Confirmer'),
           ),
         ],
       ),
     );
 
-    if (confirmed == true) {
+    if (selectedStatus != null) {
       try {
-        await _orderService.markAsDelivered(order.id);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ Commande marquée comme livrée'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        _loadOrders();
+        await _orderService.updateOrderStatus(order.id, selectedStatus);
+
+        if (mounted) {
+          String successMessage = '';
+          switch (selectedStatus) {
+            case 'confirmed':
+              successMessage = '✅ ${order.book.title} confirmée et prête à livrer';
+              break;
+            case 'delivered':
+              successMessage = '📦 ${order.book.title} marquée comme livrée';
+              break;
+            case 'refused':
+              successMessage = '❌ ${order.book.title} refusée';
+              break;
+          }
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(successMessage),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          _loadOrders(); // Reload orders to reflect status change
+        }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ Erreur: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        if (mounted) {
+          // Clean up error message
+          String errorMsg = e.toString();
+          if (errorMsg.startsWith('Exception: ')) {
+            errorMsg = errorMsg.substring(11);
+          }
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMsg),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
@@ -167,15 +242,14 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> with SingleTickerPr
           ),
         ),
         actions: [
-          if (order.isConfirmed)
-            TextButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                _markAsDelivered(order);
-              },
-              icon: const Icon(Icons.check_circle),
-              label: const Text('Marquer livrée'),
-            ),
+          TextButton.icon(
+            onPressed: () {
+              Navigator.pop(context);
+              _showStatusChangeDialog(order);
+            },
+            icon: const Icon(Icons.swap_horiz),
+            label: const Text('Changer statut'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Fermer'),
@@ -370,16 +444,11 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> with SingleTickerPr
                                     Text('📍 ${order.buyerLocation!.address}'),
                                 ],
                               ),
-                              trailing: order.isConfirmed
-                                  ? IconButton(
-                                      icon: const Icon(Icons.check_circle, color: Colors.green),
-                                      tooltip: 'Marquer livrée',
-                                      onPressed: () => _markAsDelivered(order),
-                                    )
-                                  : Chip(
-                                      label: Text(order.statusDisplay),
-                                      backgroundColor: _getStatusColor(order.status).withOpacity(0.2),
-                                    ),
+                              trailing: IconButton(
+                                icon: Icon(Icons.swap_horiz, color: _getStatusColor(order.status)),
+                                tooltip: 'Changer statut',
+                                onPressed: () => _showStatusChangeDialog(order),
+                              ),
                               onTap: () => _showOrderDetails(order),
                               isThreeLine: true,
                             ),
