@@ -115,9 +115,15 @@ export default function MapPicker({
 
   useEffect(() => {
     if (position && address) {
+      // Extract location name from address (first part before comma)
+      const locationName = address.split(',')[0].trim();
+
       onLocationSelect({
-        latitude: position[0],
-        longitude: position[1],
+        name: locationName,
+        coordinates: {
+          latitude: position[0],
+          longitude: position[1]
+        },
         address: address
       });
     }
