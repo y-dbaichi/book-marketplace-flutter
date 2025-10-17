@@ -22,8 +22,9 @@ router.get('/', optionalAuth, async (req, res) => {
       sortOrder = 'desc'
     } = req.query;
 
-    // Build query
-    let query = { status: 'available' };
+    // Build query - show all books except inactive ones
+    // This allows buyers to see books even if temporarily out of stock
+    let query = { status: { $ne: 'inactive' } };
 
     // Search in title and author
     if (search) {

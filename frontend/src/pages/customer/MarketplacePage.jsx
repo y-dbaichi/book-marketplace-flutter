@@ -18,23 +18,41 @@ export default function MarketplacePage() {
   const [orderLoading, setOrderLoading] = useState(false);
   const [orderQuantity, setOrderQuantity] = useState(1);
   const [buyerNotes, setBuyerNotes] = useState('');
+  const [lastRefresh, setLastRefresh] = useState(Date.now());
 
   const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
-    fetchBooks();
+    fetchBooks(true); // Show loading on initial load
+
+    // Auto-refresh every 30 seconds to show live inventory updates
+    const refreshInterval = setInterval(() => {
+      fetchBooks(false); // Don't show loading spinner on auto-refresh
+      setLastRefresh(Date.now());
+    }, 30000);
+
+    return () => clearInterval(refreshInterval);
   }, []);
 
-  const fetchBooks = async () => {
+  const fetchBooks = async (showLoadingSpinner = true) => {
     try {
-      setLoading(true);
+      if (showLoadingSpinner) {
+        setLoading(true);
+      }
       const response = await bookService.getAllBooks();
       setBooks(response.books || []);
     } catch (error) {
       console.error('Error fetching books:', error);
     } finally {
-      setLoading(false);
+      if (showLoadingSpinner) {
+        setLoading(false);
+      }
     }
+  };
+
+  const handleManualRefresh = () => {
+    fetchBooks(false);
+    setLastRefresh(Date.now());
   };
 
   const filteredBooks = books.filter(book =>
