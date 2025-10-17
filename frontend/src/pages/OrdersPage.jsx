@@ -5,24 +5,56 @@ import Button from '../components/common/Button';
 export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState(Date.now());
 
   useEffect(() => {
-    async function fetchOrders() {
-      setLoading(true);
-      try {
-        const res = await axios.get('/api/orders');
-        setOrders(res.data);
-      } catch (err) {
-        setOrders([]);
-      }
-      setLoading(false);
-    }
-    fetchOrders();
+    fetchOrders(true); // Show loading on initial load
+
+    // Auto-refresh every 30 seconds to show order status updates
+    const refreshInterval = setInterval(() => {
+      fetchOrders(false); // Don't show loading spinner on auto-refresh
+      setLastRefresh(Date.now());
+    }, 30000);
+
+    return () => clearInterval(refreshInterval);
   }, []);
+
+  async function fetchOrders(showLoadingSpinner = true) {
+    try {
+      if (showLoadingSpinner) {
+        setLoading(true);
+      }
+      const res = await axios.get('/api/orders');
+      setOrders(res.data);
+    } catch (err) {
+      setOrders([]);
+    } finally {
+      if (showLoadingSpinner) {
+        setLoading(false);
+      }
+    }
+  }
+
+  const handleManualRefresh = () => {
+    fetchOrders(false);
+    setLastRefresh(Date.now());
+  };
 
   return (
     <div className="container py-5">
-      <h2 className="fw-bold mb-4">Orders</h2>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 className="fw-bold mb-1">Orders</h2>
+          <small className="text-muted">
+            <i className="bi bi-clock me-1"></i>
+            Auto-refreshes every 30s • Last: {new Date(lastRefresh).toLocaleTimeString()}
+          </small>
+        </div>
+        <Button variant="outline" onClick={handleManualRefresh}>
+          <i className="bi bi-arrow-clockwise me-2"></i>
+          Refresh
+        </Button>
+      </div>
       {loading ? (
         <div className="text-center py-5">Loading orders...</div>
       ) : orders.length === 0 ? (

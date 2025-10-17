@@ -1,8 +1,21 @@
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Card, Badge } from 'react-bootstrap';
 import LoadingSpinner from './LoadingSpinner';
+
+// Component to handle map resizing
+function ResizeMap() {
+  const map = useMap();
+  useEffect(() => {
+    // Small delay to ensure container is fully rendered
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [map]);
+  return null;
+}
 
 // Fix for default markers in react-leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -84,18 +97,33 @@ export default function LocationMap({
         </h5>
         <Badge bg="primary">{points.length} {type}</Badge>
       </div>
-      
+
       <div className="map-container">
         <MapContainer
           center={mapCenter}
           zoom={zoom}
-          style={{ height: '100%', width: '100%' }}
+          style={{ height: '100%', width: '100%', minHeight: '400px' }}
+          scrollWheelZoom={false}
         >
+          <ResizeMap />
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            maxZoom={19}
+            subdomains={['a', 'b', 'c']}
+            eventHandlers={{
+              tileerror: (error) => {
+                console.error('Tile loading error:', error);
+              },
+              tileloadstart: () => {
+                console.log('Tiles loading...');
+              },
+              tileload: () => {
+                console.log('Tile loaded successfully');
+              }
+            }}
           />
-          
+
           {points.map((point, index) => (
             <Marker
               key={point.id || index}

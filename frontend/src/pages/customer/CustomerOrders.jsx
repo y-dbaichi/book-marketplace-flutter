@@ -9,22 +9,40 @@ import LocationMap from '../../components/common/LocationMap';
 export default function CustomerOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState(Date.now());
   const { user } = useAuth();
 
   useEffect(() => {
-    fetchOrders();
+    fetchOrders(true); // Show loading on initial load
+
+    // Auto-refresh every 30 seconds to show order status updates
+    const refreshInterval = setInterval(() => {
+      fetchOrders(false); // Don't show loading spinner on auto-refresh
+      setLastRefresh(Date.now());
+    }, 30000);
+
+    return () => clearInterval(refreshInterval);
   }, []);
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (showLoadingSpinner = true) => {
     try {
-      setLoading(true);
+      if (showLoadingSpinner) {
+        setLoading(true);
+      }
       const response = await orderService.getBuyerOrders();
       setOrders(response.orders || []);
     } catch (error) {
       console.error('Error fetching orders:', error);
     } finally {
-      setLoading(false);
+      if (showLoadingSpinner) {
+        setLoading(false);
+      }
     }
+  };
+
+  const handleManualRefresh = () => {
+    fetchOrders(false);
+    setLastRefresh(Date.now());
   };
 
   const getStatusBadge = (status) => {
@@ -92,9 +110,21 @@ export default function CustomerOrders() {
             <i className="bi bi-bag-check me-2"></i>
             My Orders
           </h1>
-          <p className="text-muted mb-0">Track your book orders and delivery status</p>
+          <p className="text-muted mb-0">
+            Track your book orders and delivery status
+            <span className="ms-3 small">
+              <i className="bi bi-clock me-1"></i>
+              Auto-refreshes every 30s • Last: {new Date(lastRefresh).toLocaleTimeString()}
+            </span>
+          </p>
         </div>
-        <Badge bg="primary" className="fs-6">{orders.length} orders</Badge>
+        <div className="d-flex gap-2 align-items-center">
+          <Button variant="outline-secondary" onClick={handleManualRefresh}>
+            <i className="bi bi-arrow-clockwise me-2"></i>
+            Refresh
+          </Button>
+          <Badge bg="primary" className="fs-6">{orders.length} orders</Badge>
+        </div>
       </div>
 
       <Tabs defaultActiveKey="list" className="mb-4">
@@ -215,6 +245,7 @@ export default function CustomerOrders() {
           <Card>
             <Card.Body>
               <LocationMap
+                key={orderLocations.length} // Force re-render when orders change
                 points={orderLocations}
                 type="suppliers"
                 title="Seller Locations"

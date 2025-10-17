@@ -16,20 +16,40 @@ export default function BuyerOrders() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState(Date.now());
 
   useEffect(() => {
-    async function fetchOrders() {
-      setLoading(true);
-      try {
-        const response = await orderService.getSellerOrders();
-        setOrders(response.orders || []);
-      } catch (err) {
-        setOrders([]);
-      }
-      setLoading(false);
-    }
-    fetchOrders();
+    fetchOrders(true); // Show loading on initial load
+
+    // Auto-refresh every 30 seconds to show order status updates
+    const refreshInterval = setInterval(() => {
+      fetchOrders(false); // Don't show loading spinner on auto-refresh
+      setLastRefresh(Date.now());
+    }, 30000);
+
+    return () => clearInterval(refreshInterval);
   }, []);
+
+  async function fetchOrders(showLoadingSpinner = true) {
+    try {
+      if (showLoadingSpinner) {
+        setLoading(true);
+      }
+      const response = await orderService.getSellerOrders();
+      setOrders(response.orders || []);
+    } catch (err) {
+      setOrders([]);
+    } finally {
+      if (showLoadingSpinner) {
+        setLoading(false);
+      }
+    }
+  }
+
+  const handleManualRefresh = () => {
+    fetchOrders(false);
+    setLastRefresh(Date.now());
+  };
 
   const handleUpdateStatus = async (orderId, newStatus) => {
     setUpdating(true);
@@ -113,11 +133,23 @@ export default function BuyerOrders() {
             <i className="bi bi-cart-check me-2 text-primary"></i>
             Order Management
           </h1>
-          <p className="text-muted mb-0">Manage customer orders and delivery confirmations</p>
+          <p className="text-muted mb-0">
+            Manage customer orders and delivery confirmations
+            <span className="ms-3 small">
+              <i className="bi bi-clock me-1"></i>
+              Auto-refreshes every 30s • Last: {new Date(lastRefresh).toLocaleTimeString()}
+            </span>
+          </p>
         </div>
-        <div className="text-end">
-          <div className="fs-5 fw-bold text-primary">{orders.length}</div>
-          <small className="text-muted">Total Orders</small>
+        <div className="d-flex gap-3 align-items-center">
+          <Button variant="outline-secondary" onClick={handleManualRefresh}>
+            <i className="bi bi-arrow-clockwise me-2"></i>
+            Refresh
+          </Button>
+          <div className="text-end">
+            <div className="fs-5 fw-bold text-primary">{orders.length}</div>
+            <small className="text-muted">Total Orders</small>
+          </div>
         </div>
       </div>
 

@@ -202,7 +202,7 @@ export default function MarketplacePage() {
                   Connect with local book lovers and find your next great read
                 </p>
                 <div className="fade-in-up" style={{ animationDelay: '0.4s' }}>
-                  <InputGroup size="lg" className="mb-4">
+                  <InputGroup size="lg" className="mb-2">
                     <InputGroup.Text className="bg-white border-0">
                       <i className="bi bi-search text-primary"></i>
                     </InputGroup.Text>
@@ -213,7 +213,19 @@ export default function MarketplacePage() {
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="search-bar border-0"
                     />
+                    <Button
+                      variant="light"
+                      onClick={handleManualRefresh}
+                      className="border-0"
+                      style={{ backgroundColor: 'white' }}
+                    >
+                      <i className="bi bi-arrow-clockwise text-primary"></i>
+                    </Button>
                   </InputGroup>
+                  <small className="text-white-50 d-block mb-3">
+                    <i className="bi bi-clock me-1"></i>
+                    Auto-refreshes every 30 seconds • Last refresh: {new Date(lastRefresh).toLocaleTimeString()}
+                  </small>
                 </div>
               </div>
             </Col>

@@ -27,21 +27,39 @@ export default function BuyerBooks() {
   const [qualityFilter, setQualityFilter] = useState('all');
   const [viewMode, setViewMode] = useState('grid'); // grid or list
   const [showFilters, setShowFilters] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState(Date.now());
 
   useEffect(() => {
-    fetchBooks();
+    fetchBooks(true); // Show loading on initial load
+
+    // Auto-refresh every 30 seconds to keep inventory up-to-date
+    const refreshInterval = setInterval(() => {
+      fetchBooks(false); // Don't show loading spinner on auto-refresh
+      setLastRefresh(Date.now());
+    }, 30000);
+
+    return () => clearInterval(refreshInterval);
   }, []);
 
-  const fetchBooks = async () => {
+  const fetchBooks = async (showLoadingSpinner = true) => {
     try {
-      setLoading(true);
+      if (showLoadingSpinner) {
+        setLoading(true);
+      }
       const response = await bookService.getMyListings();
       setBooks(response.books || []);
     } catch (error) {
       console.error('Error fetching books:', error);
     } finally {
-      setLoading(false);
+      if (showLoadingSpinner) {
+        setLoading(false);
+      }
     }
+  };
+
+  const handleManualRefresh = () => {
+    fetchBooks(false);
+    setLastRefresh(Date.now());
   };
 
   const handleInputChange = (e) => {
@@ -192,12 +210,24 @@ export default function BuyerBooks() {
                 <i className="bi bi-bookshelf me-2 text-primary"></i>
                 My Book Inventory
               </h1>
-              <p className="text-muted mb-0">Manage your book listings and inventory</p>
+              <p className="text-muted mb-0">
+                Manage your book listings and inventory
+                <span className="ms-3 small">
+                  <i className="bi bi-clock me-1"></i>
+                  Auto-refreshes every 30s • Last: {new Date(lastRefresh).toLocaleTimeString()}
+                </span>
+              </p>
             </div>
-            <Button variant="primary" onClick={handleAddBook} size="lg">
-              <i className="bi bi-plus-circle me-2"></i>
-              Add New Book
-            </Button>
+            <div className="d-flex gap-2">
+              <Button variant="outline-secondary" onClick={handleManualRefresh} size="lg">
+                <i className="bi bi-arrow-clockwise me-2"></i>
+                Refresh
+              </Button>
+              <Button variant="primary" onClick={handleAddBook} size="lg">
+                <i className="bi bi-plus-circle me-2"></i>
+                Add New Book
+              </Button>
+            </div>
           </div>
         </Col>
       </Row>
