@@ -86,10 +86,10 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> with SingleTickerPr
     final Map<String, String> availableStatuses = {};
 
     if (order.status == 'pending') {
-      availableStatuses['confirmed'] = '✅ À livrer';
-      availableStatuses['refused'] = '❌ Refuser';
+      availableStatuses['confirmed'] = '✅ Confirmer la commande';
+      availableStatuses['refused'] = '❌ Refuser la commande';
     } else if (order.status == 'confirmed') {
-      availableStatuses['delivered'] = '📦 Livrée';
+      availableStatuses['delivered'] = '📦 Marquer comme livrée';
       availableStatuses['refused'] = '❌ Refuser';
     }
 
@@ -242,14 +242,15 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> with SingleTickerPr
           ),
         ),
         actions: [
-          TextButton.icon(
-            onPressed: () {
-              Navigator.pop(context);
-              _showStatusChangeDialog(order);
-            },
-            icon: const Icon(Icons.swap_horiz),
-            label: const Text('Changer statut'),
-          ),
+          if (order.status != 'delivered' && order.status != 'refused')
+            TextButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                _showStatusChangeDialog(order);
+              },
+              icon: const Icon(Icons.swap_horiz),
+              label: const Text('Changer statut'),
+            ),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Fermer'),
@@ -444,11 +445,13 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> with SingleTickerPr
                                     Text('📍 ${order.buyerLocation!.address}'),
                                 ],
                               ),
-                              trailing: IconButton(
-                                icon: Icon(Icons.swap_horiz, color: _getStatusColor(order.status)),
-                                tooltip: 'Changer statut',
-                                onPressed: () => _showStatusChangeDialog(order),
-                              ),
+                              trailing: (order.status == 'delivered' || order.status == 'refused')
+                                  ? null // No button for final statuses
+                                  : IconButton(
+                                      icon: Icon(Icons.swap_horiz, color: _getStatusColor(order.status)),
+                                      tooltip: 'Changer statut',
+                                      onPressed: () => _showStatusChangeDialog(order),
+                                    ),
                               onTap: () => _showOrderDetails(order),
                               isThreeLine: true,
                             ),
@@ -460,22 +463,21 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> with SingleTickerPr
           ? Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                if (confirmedOrders.length >= 2)
-                  FloatingActionButton.extended(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => OrderTourSelectionPage(confirmedOrders: confirmedOrders),
-                        ),
-                      );
-                    },
-                    heroTag: 'tour',
-                    backgroundColor: Colors.deepPurple,
-                    foregroundColor: Colors.white,
-                    icon: const Icon(Icons.route, color: Colors.white),
-                    label: const Text('Planifier Tournée', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  ),
+                FloatingActionButton.extended(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => OrderTourSelectionPage(confirmedOrders: confirmedOrders),
+                      ),
+                    );
+                  },
+                  heroTag: 'tour',
+                  backgroundColor: Colors.deepPurple,
+                  foregroundColor: Colors.white,
+                  icon: const Icon(Icons.route, color: Colors.white),
+                  label: const Text('Planifier Tournée', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
                 const SizedBox(height: 12),
                 FloatingActionButton.extended(
                   onPressed: () {
