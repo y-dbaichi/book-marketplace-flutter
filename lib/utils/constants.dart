@@ -9,10 +9,13 @@ class AppConstants {
   // ============================================
 
   /// Base URL for API requests
-  /// - Mac/iOS Simulator: use localhost
-  /// - Android Emulator: use 10.0.2.2
-  /// - Physical Device: use your Mac's IP (find with: ifconfig | grep "inet " | grep -v 127.0.0.1)
-  static const String baseUrl = 'http://localhost:5001/api';
+  /// Production API (Vercel)
+  static const String baseUrl = 'https://book-marketplace-api.vercel.app/api';
+
+  /// Development API (uncomment for local testing)
+  // static const String baseUrl = 'http://localhost:5001/api';
+  // For Android Emulator: 'http://10.0.2.2:5001/api'
+  // For Physical Device: 'http://YOUR_IP:5001/api'
 
   /// Auth endpoints
   static const String loginEndpoint = '/auth/login';
@@ -47,7 +50,7 @@ class AppConstants {
   static const int apiTimeout = 30;
 
   /// Enable detailed API logging (disable in production)
-  static const bool enableApiLogging = true;
+  static const bool enableApiLogging = false;
 
   // ============================================
   // MAP DEFAULTS (Casablanca, Morocco)
