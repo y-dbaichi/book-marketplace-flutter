@@ -111,11 +111,12 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 // ============================================
-// DATABASE CONNECTION
+// DATABASE CONNECTION (for local development only)
 // ============================================
 
 /**
  * Connect to MongoDB with retry logic
+ * NOTE: In Vercel serverless, connection is handled by api/index.js
  */
 const connectDB = async () => {
   const maxRetries = 5;
@@ -158,11 +159,12 @@ mongoose.connection.on('error', (err) => {
 });
 
 // ============================================
-// SERVER STARTUP
+// SERVER STARTUP (local development only)
 // ============================================
 
 /**
  * Start the Express server
+ * NOTE: This only runs locally. Vercel handles server startup automatically.
  */
 const startServer = async () => {
   try {
@@ -212,10 +214,11 @@ const startServer = async () => {
   }
 };
 
-// Start the server
+// Start the server ONLY when run directly (local development)
+// When imported by Vercel, this won't execute
 if (require.main === module) {
   startServer();
 }
 
-// Export for testing
+// Export the Express app for Vercel serverless
 module.exports = app;
