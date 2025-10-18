@@ -51,17 +51,12 @@ app.use('/api/auth/register', authLimiter);
 // GENERAL MIDDLEWARE
 // ============================================
 
-// CORS configuration - Allow requests from frontend
+// CORS configuration - Allow requests from anywhere
 app.use(cors({
-  origin: [
-    'http://localhost:3000',    // React dev
-    'http://localhost:5173',    // Vite dev
-    'http://localhost:8080',    // Flutter web
-    process.env.FRONTEND_URL
-  ].filter(Boolean),
+  origin: true, // Allow all origins
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 // Compression middleware - compress responses

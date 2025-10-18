@@ -769,41 +769,61 @@ Orders auto-refresh every 30 seconds to show status updates:
 
 ## Deployment
 
-### Backend Deployment (Example: Heroku)
+### 🚀 Quick Deploy to Vercel
+
+The easiest way to deploy this application is using Vercel:
 
 ```bash
-# Login to Heroku
+# One-command deployment
+./deploy.sh
+```
+
+**For detailed deployment instructions, see:**
+- [QUICK_DEPLOY.md](./QUICK_DEPLOY.md) - 5-minute quick start
+- [DEPLOYMENT.md](./DEPLOYMENT.md) - Complete deployment guide
+- [DEPLOYMENT_SUMMARY.md](./DEPLOYMENT_SUMMARY.md) - Configuration reference
+
+### Backend Deployment (Vercel - Recommended)
+
+**Automated Deployment:**
+```bash
+cd backend
+vercel --prod
+```
+
+**Environment Variables to Set:**
+- `MONGODB_URI`: Your MongoDB Atlas connection string
+- `JWT_SECRET`: Strong random 32+ character secret
+- `JWT_EXPIRE`: `7d`
+- `NODE_ENV`: `production`
+- `FRONTEND_URL`: Your frontend Vercel URL
+
+### Frontend Deployment (Vercel - Recommended)
+
+**Automated Deployment:**
+```bash
+cd frontend
+vercel --prod
+```
+
+**Environment Variables to Set:**
+- `VITE_API_URL`: Your backend Vercel URL + `/api`
+
+### Alternative: Heroku Deployment
+
+**Backend (Heroku):**
+```bash
 heroku login
-
-# Create app
 heroku create book-marketplace-api
-
-# Set environment variables
 heroku config:set JWT_SECRET=your-secret
 heroku config:set MONGODB_URI=your-mongodb-uri
-
-# Deploy
 git push heroku main
-
-# Open app
-heroku open
 ```
 
-### Frontend Deployment (Example: Vercel)
-
-```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Navigate to frontend
-cd frontend
-
-# Deploy
-vercel
-
-# Set environment variables in Vercel dashboard
-# VITE_API_URL=https://your-api.herokuapp.com/api
-```
+**Frontend (Netlify/Vercel):**
+- Connect your Git repository
+- Set `VITE_API_URL` in environment variables
+- Automatic deployments on push
 
 ### Mobile App Deployment
 
@@ -816,6 +836,12 @@ vercel
 1. Configure signing in Xcode
 2. Build release: `flutter build ios --release`
 3. Upload to App Store Connect
+
+**Flutter Web** (Optional):
+```bash
+flutter build web
+# Deploy the build/web directory to any static hosting
+```
 
 ---
 
