@@ -10,6 +10,7 @@ export default function CustomerOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(Date.now());
+  const [activeTab, setActiveTab] = useState('list');
   const { user } = useAuth();
 
   useEffect(() => {
@@ -127,7 +128,11 @@ export default function CustomerOrders() {
         </div>
       </div>
 
-      <Tabs defaultActiveKey="list" className="mb-4">
+      <Tabs
+        activeKey={activeTab}
+        onSelect={(k) => setActiveTab(k)}
+        className="mb-4"
+      >
         <Tab eventKey="list" title={
           <span>
             <i className="bi bi-list me-2"></i>
@@ -244,13 +249,15 @@ export default function CustomerOrders() {
         }>
           <Card>
             <Card.Body>
-              <LocationMap
-                key={orderLocations.length} // Force re-render when orders change
-                points={orderLocations}
-                type="suppliers"
-                title="Seller Locations"
-                loading={loading}
-              />
+              {activeTab === 'map' && (
+                <LocationMap
+                  key={orderLocations.length} // Force re-render when orders change
+                  points={orderLocations}
+                  type="suppliers"
+                  title="Seller Locations"
+                  loading={loading}
+                />
+              )}
               {orderLocations.length > 0 && (
                 <div className="mt-4">
                   <h5 className="mb-3">Your Orders</h5>
