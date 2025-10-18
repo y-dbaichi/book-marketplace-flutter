@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>My Awesome App</string>
+	<string>Book Marketplace</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -13,7 +13,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>my_awesome_app</string>
+	<string>Book Marketplace</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -45,5 +45,25 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+	<!-- Location Permissions -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Book Marketplace needs your location to show nearby book sellers and help with delivery routes.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Book Marketplace needs your location to track delivery routes and show nearby sellers.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Book Marketplace needs your location to track delivery routes even when the app is in the background.</string>
+
+	<!-- Camera & Photo Library Permissions -->
+	<key>NSCameraUsageDescription</key>
+	<string>Book Marketplace needs camera access to take photos of books you want to sell.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Book Marketplace needs access to your photos to select book images.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Book Marketplace needs permission to save book photos to your library.</string>
+
+	<!-- Microphone (if needed for future features) -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Book Marketplace may need microphone access for customer support features.</string>
 </dict>
 </plist>
