@@ -40,7 +40,10 @@ export default function BuyerDashboard() {
       const orders = ordersResponse.orders || [];
 
       // Calculate business metrics
-      const completedOrders = orders.filter(order => order.status === 'completed');
+      // Count both 'delivered' and 'confirmed' orders as revenue
+      const completedOrders = orders.filter(order =>
+        order.status === 'delivered' || order.status === 'confirmed'
+      );
       const totalRevenue = completedOrders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
       const lowStockBooks = books.filter(book => book.quantity <= 2).length;
       const averageOrderValue = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
@@ -73,7 +76,9 @@ export default function BuyerDashboard() {
     const classes = {
       pending: 'bg-warning',
       confirmed: 'bg-info',
-      completed: 'bg-success'
+      delivered: 'bg-success',
+      completed: 'bg-success',
+      refused: 'bg-danger'
     };
     return classes[status] || 'bg-secondary';
   };
