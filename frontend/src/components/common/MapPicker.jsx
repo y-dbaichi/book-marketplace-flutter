@@ -112,22 +112,31 @@ export default function MapPicker({
   const [error, setError] = useState('');
   const mapRef = useRef();
   const searchTimeoutRef = useRef();
+  const isInitialMount = useRef(true);
 
+  // Initialize with reverse geocode if no initial address provided
   useEffect(() => {
-    if (position && address) {
-      // Extract location name from address (first part before comma)
-      const locationName = address.split(',')[0].trim();
+    if (!initialAddress && initialPosition) {
+      reverseGeocode(initialPosition[0], initialPosition[1], setAddress);
+    }
+  }, []); // Only run once on mount
 
+  // Call onLocationSelect when position or address changes (but not on initial mount)
+  useEffect(() => {
+    // Skip on initial mount to prevent infinite loop
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    if (position && address) {
       onLocationSelect({
-        name: locationName,
-        coordinates: {
-          latitude: position[0],
-          longitude: position[1]
-        },
+        latitude: position[0],
+        longitude: position[1],
         address: address
       });
     }
-  }, [position, address, onLocationSelect]);
+  }, [position, address]);
 
   const handleSearchInputChange = (e) => {
     const value = e.target.value;

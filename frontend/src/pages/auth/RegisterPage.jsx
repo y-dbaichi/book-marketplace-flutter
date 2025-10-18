@@ -49,20 +49,31 @@ export default function RegisterPage() {
   };
 
   const handleLocationSelect = (location) => {
-    setFormData(prev => ({
-      ...prev,
-      latitude: location.latitude,
-      longitude: location.longitude,
-      address: location.address
-    }));
+    // Only update if values actually changed to prevent infinite loops
+    setFormData(prev => {
+      if (prev.latitude === location.latitude &&
+          prev.longitude === location.longitude &&
+          prev.address === location.address) {
+        return prev; // No change, return same reference
+      }
+
+      return {
+        ...prev,
+        latitude: location.latitude,
+        longitude: location.longitude,
+        address: location.address
+      };
+    });
 
     // Clear location-related errors
-    setErrors(prev => ({
-      ...prev,
-      address: '',
-      latitude: '',
-      longitude: ''
-    }));
+    if (errors.address || errors.latitude || errors.longitude) {
+      setErrors(prev => ({
+        ...prev,
+        address: '',
+        latitude: '',
+        longitude: ''
+      }));
+    }
   };
 
   const nextStep = () => {

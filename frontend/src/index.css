@@ -360,10 +360,18 @@ body {
 
 /* Map Container */
 .map-container {
-  height: 400px;
+  height: 500px;
+  width: 100%;
   border-radius: var(--border-radius);
   overflow: hidden;
   box-shadow: var(--card-shadow);
+  position: relative;
+}
+
+.map-container .leaflet-container {
+  height: 100% !important;
+  width: 100% !important;
+  border-radius: var(--border-radius);
 }
 
 /* Search Suggestions */

@@ -25,7 +25,7 @@ export default function LandingPage() {
                     </Button>
                   </Link>
                   <Link to="/login">
-                    <Button variant="outline" size="lg" className="px-5 py-3 text-white border-white">
+                   <Button variant="primary" size="lg" className="px-5 py-3">
                       <i className="bi bi-box-arrow-in-right me-2"></i>
                       Sign In
                     </Button>

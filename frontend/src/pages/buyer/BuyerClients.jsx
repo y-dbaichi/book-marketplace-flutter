@@ -8,6 +8,7 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 export default function BuyerClients() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('map');
   const { user } = useAuth();
 
   useEffect(() => {
@@ -141,7 +142,11 @@ export default function BuyerClients() {
         </Row>
       )}
 
-      <Tabs defaultActiveKey="list" className="mb-4 modern-tabs">
+      <Tabs
+        activeKey={activeTab}
+        onSelect={(k) => setActiveTab(k)}
+        className="mb-4 modern-tabs"
+      >
         <Tab eventKey="map" title={
           <span>
             <i className="bi bi-map me-2"></i>
@@ -150,12 +155,14 @@ export default function BuyerClients() {
         }>
           <Card>
             <Card.Body>
-              <LocationMap
-                points={clients}
-                type="clients"
-                title="Client Locations"
-                loading={loading}
-              />
+              {activeTab === 'map' && (
+                <LocationMap
+                  points={clients}
+                  type="clients"
+                  title="Client Locations"
+                  loading={loading}
+                />
+              )}
             </Card.Body>
           </Card>
         </Tab>

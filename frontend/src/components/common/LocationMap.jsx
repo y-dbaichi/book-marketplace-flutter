@@ -8,11 +8,13 @@ import LoadingSpinner from './LoadingSpinner';
 function ResizeMap() {
   const map = useMap();
   useEffect(() => {
-    // Small delay to ensure container is fully rendered
-    const timer = setTimeout(() => {
-      map.invalidateSize();
-    }, 100);
-    return () => clearTimeout(timer);
+    // Multiple resize attempts to ensure proper rendering
+    const timers = [
+      setTimeout(() => map.invalidateSize(), 100),
+      setTimeout(() => map.invalidateSize(), 300),
+      setTimeout(() => map.invalidateSize(), 500)
+    ];
+    return () => timers.forEach(timer => clearTimeout(timer));
   }, [map]);
   return null;
 }
@@ -102,7 +104,7 @@ export default function LocationMap({
         <MapContainer
           center={mapCenter}
           zoom={zoom}
-          style={{ height: '100%', width: '100%', minHeight: '400px' }}
+          style={{ height: '100%', width: '100%' }}
           scrollWheelZoom={false}
         >
           <ResizeMap />

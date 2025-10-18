@@ -58,9 +58,23 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    if (!location.coordinates.latitude || !location.coordinates.longitude) {
+    if (location.coordinates.latitude === undefined || location.coordinates.latitude === null ||
+        location.coordinates.longitude === undefined || location.coordinates.longitude === null) {
       return res.status(400).json({
         message: 'Location coordinates must include latitude and longitude'
+      });
+    }
+
+    // Validate coordinate ranges
+    if (location.coordinates.latitude < -90 || location.coordinates.latitude > 90) {
+      return res.status(400).json({
+        message: 'Latitude must be between -90 and 90'
+      });
+    }
+
+    if (location.coordinates.longitude < -180 || location.coordinates.longitude > 180) {
+      return res.status(400).json({
+        message: 'Longitude must be between -180 and 180'
       });
     }
 
