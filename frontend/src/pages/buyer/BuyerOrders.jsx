@@ -697,6 +697,26 @@ export default function BuyerOrders() {
                     </Card>
                   </Col>
                 )}
+
+                {/* Seller Notes (Your Notes) */}
+                {selectedOrder.sellerNotes && (
+                  <Col xs={12}>
+                    <Card className="border-0 shadow-sm">
+                      <Card.Body>
+                        <div className="d-flex align-items-center mb-3">
+                          <div className="bg-info bg-opacity-10 rounded p-2 me-2">
+                            <i className="bi bi-pencil-square fs-4 text-info"></i>
+                          </div>
+                          <h6 className="mb-0 fw-semibold">My Notes (Seller)</h6>
+                        </div>
+                        <div className="bg-light rounded p-3">
+                          <i className="bi bi-quote text-muted"></i>
+                          <p className="mb-0 ms-3 fst-italic">{selectedOrder.sellerNotes}</p>
+                        </div>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                )}
               </Row>
             </>
           )}

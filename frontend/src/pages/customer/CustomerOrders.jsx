@@ -229,7 +229,19 @@ export default function CustomerOrders() {
                         <div className="mt-3">
                           <small className="text-muted">
                             <i className="bi bi-chat-left-text me-1"></i>
-                            Note: {order.buyerNotes}
+                            My Note: {order.buyerNotes}
+                          </small>
+                        </div>
+                      )}
+
+                      {order.sellerNotes && (
+                        <div className="mt-2 p-2 bg-light rounded">
+                          <small className="text-primary fw-semibold">
+                            <i className="bi bi-shop me-1"></i>
+                            Seller Note:
+                          </small>
+                          <small className="text-dark fst-italic d-block mt-1">
+                            "{order.sellerNotes}"
                           </small>
                         </div>
                       )}

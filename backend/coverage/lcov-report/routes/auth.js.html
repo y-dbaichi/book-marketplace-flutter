@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">80.72% </span>
+                <span class="strong">79.31% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>67/83</span>
+                <span class='fraction'>69/87</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">73.43% </span>
+                <span class="strong">74.32% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>47/64</span>
+                <span class='fraction'>55/74</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">80% </span>
+                <span class="strong">78.57% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>64/80</span>
+                <span class='fraction'>66/84</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -354,7 +354,21 @@
 <a name='L289'></a><a href='#L289'>289</a>
 <a name='L290'></a><a href='#L290'>290</a>
 <a name='L291'></a><a href='#L291'>291</a>
-<a name='L292'></a><a href='#L292'>292</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">2x</span>
+<a name='L292'></a><a href='#L292'>292</a>
+<a name='L293'></a><a href='#L293'>293</a>
+<a name='L294'></a><a href='#L294'>294</a>
+<a name='L295'></a><a href='#L295'>295</a>
+<a name='L296'></a><a href='#L296'>296</a>
+<a name='L297'></a><a href='#L297'>297</a>
+<a name='L298'></a><a href='#L298'>298</a>
+<a name='L299'></a><a href='#L299'>299</a>
+<a name='L300'></a><a href='#L300'>300</a>
+<a name='L301'></a><a href='#L301'>301</a>
+<a name='L302'></a><a href='#L302'>302</a>
+<a name='L303'></a><a href='#L303'>303</a>
+<a name='L304'></a><a href='#L304'>304</a>
+<a name='L305'></a><a href='#L305'>305</a>
+<a name='L306'></a><a href='#L306'>306</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
@@ -403,6 +417,20 @@
 <span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -705,9 +733,23 @@ router.post('/register', async (req, res) =&gt; {
       });
     }
 &nbsp;
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!location.coordinates.latitude || !location.coordinates.longitude) {
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (location.coordinates.latitude === undefined || location.coordinates.latitude === null ||
+        location.coordinates.longitude === undefined || location.coordinates.longitude === null) {
 <span class="cstat-no" title="statement not covered" >      return res.status(400).json({</span>
         message: 'Location coordinates must include latitude and longitude'
+      });
+    }
+&nbsp;
+    // Validate coordinate ranges
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (location.coordinates.latitude &lt; -90 || location.coordinates.latitude &gt; 90) {
+<span class="cstat-no" title="statement not covered" >      return res.status(400).json({</span>
+        message: 'Latitude must be between -90 and 90'
+      });
+    }
+&nbsp;
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (location.coordinates.longitude &lt; -180 || location.coordinates.longitude &gt; 180) {
+<span class="cstat-no" title="statement not covered" >      return res.status(400).json({</span>
+        message: 'Longitude must be between -180 and 180'
       });
     }
 &nbsp;
@@ -943,7 +985,7 @@ module.exports = router;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-15T15:35:50.939Z
+                at 2025-10-18T14:26:04.614Z
             </div>
         <script src="../prettify.js"></script>
         <script>

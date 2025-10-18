@@ -151,46 +151,92 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> with SingleTickerPr
     );
 
     if (selectedStatus != null) {
-      try {
-        await _orderService.updateOrderStatus(order.id, selectedStatus);
-
-        if (mounted) {
-          String successMessage = '';
-          switch (selectedStatus) {
-            case 'confirmed':
-              successMessage = '✅ ${order.book.title} confirmée et prête à livrer';
-              break;
-            case 'delivered':
-              successMessage = '📦 ${order.book.title} marquée comme livrée';
-              break;
-            case 'refused':
-              successMessage = '❌ ${order.book.title} refusée';
-              break;
-          }
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(successMessage),
-              backgroundColor: Colors.green,
+      // Show dialog to add seller notes
+      final notesController = TextEditingController();
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Ajouter une note (optionnel)'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Voulez-vous ajouter une note pour le client ?',
+                style: TextStyle(color: Colors.grey[700]),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: notesController,
+                decoration: const InputDecoration(
+                  hintText: 'Ex: Livraison prévue demain...',
+                  border: OutlineInputBorder(),
+                  labelText: 'Note du vendeur',
+                ),
+                maxLines: 3,
+                maxLength: 500,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Annuler'),
             ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Continuer'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed == true) {
+        try {
+          final notes = notesController.text.trim();
+          await _orderService.updateOrderStatus(
+            order.id,
+            selectedStatus,
+            notes: notes.isNotEmpty ? notes : null,
           );
 
-          _loadOrders(); // Reload orders to reflect status change
-        }
-      } catch (e) {
-        if (mounted) {
-          // Clean up error message
-          String errorMsg = e.toString();
-          if (errorMsg.startsWith('Exception: ')) {
-            errorMsg = errorMsg.substring(11);
-          }
+          if (mounted) {
+            String successMessage = '';
+            switch (selectedStatus) {
+              case 'confirmed':
+                successMessage = '✅ ${order.book.title} confirmée et prête à livrer';
+                break;
+              case 'delivered':
+                successMessage = '📦 ${order.book.title} marquée comme livrée';
+                break;
+              case 'refused':
+                successMessage = '❌ ${order.book.title} refusée';
+                break;
+            }
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(errorMsg),
-              backgroundColor: Colors.red,
-            ),
-          );
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(successMessage),
+                backgroundColor: Colors.green,
+              ),
+            );
+
+            _loadOrders(); // Reload orders to reflect status change
+          }
+        } catch (e) {
+          if (mounted) {
+            // Clean up error message
+            String errorMsg = e.toString();
+            if (errorMsg.startsWith('Exception: ')) {
+              errorMsg = errorMsg.substring(11);
+            }
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(errorMsg),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
         }
       }
     }
@@ -237,6 +283,12 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> with SingleTickerPr
                 const Text('Notes du client:', style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
                 Text(order.buyerNotes!),
+              ],
+              if (order.sellerNotes != null) ...[
+                const Divider(),
+                const Text('Mes notes:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+                const SizedBox(height: 4),
+                Text(order.sellerNotes!, style: const TextStyle(fontStyle: FontStyle.italic)),
               ],
             ],
           ),
