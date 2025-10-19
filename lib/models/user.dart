@@ -61,7 +61,7 @@ class User {
   final UserLocation? location;
 
   /// Constructor
-  User({
+  const User({
     required this.id,
     required this.email,
     required this.userType,
@@ -149,7 +149,7 @@ class UserProfile {
   final String? bio;
 
   /// Constructor
-  UserProfile({
+  const UserProfile({
     this.firstName,
     this.lastName,
     this.bio,
@@ -200,7 +200,7 @@ class UserLocation {
   final String? address;
 
   /// Constructor
-  UserLocation({
+  const UserLocation({
     this.name,
     this.coordinates,
     this.address,
@@ -250,7 +250,7 @@ class Coordinates {
   final double longitude;
 
   /// Constructor
-  Coordinates({
+  const Coordinates({
     required this.latitude,
     required this.longitude,
   });

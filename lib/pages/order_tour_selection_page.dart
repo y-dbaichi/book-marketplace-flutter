@@ -1,7 +1,51 @@
+// Copyright 2025 Yassine Dbaichi
+// Licensed under MIT License
+
+/// Order Tour Selection Page
+///
+/// Allows sellers to select which confirmed orders to include in their
+/// delivery tour route. Selected orders are then passed to the route
+/// optimization engine.
+///
+/// **Features:**
+/// - Multi-select order list with checkboxes
+/// - Select All / Deselect All quick actions
+/// - Displays order details (customer, book, location)
+/// - Validates selection (minimum 1 order required)
+/// - Pre-selects all orders by default for convenience
+///
+/// **User Flow:**
+/// 1. View list of confirmed orders
+/// 2. Toggle selection for each order
+/// 3. Tap "Démarrer la tournée" button
+/// 4. Navigate to [OrderTourPage] with selected orders
+///
+/// **Example Usage:**
+/// ```dart
+/// Navigator.push(
+///   context,
+///   MaterialPageRoute(
+///     builder: (context) => OrderTourSelectionPage(
+///       confirmedOrders: confirmedOrdersList,
+///     ),
+///   ),
+/// );
+/// ```
+///
+/// See also:
+/// - [OrderTourPage] for the route planning and navigation page
+/// - [Order] model for order data structure
+library;
+
 import 'package:flutter/material.dart';
 import '../models/order.dart';
 import 'order_tour_page.dart';
 
+/// Multi-select page for choosing orders to include in delivery tour
+///
+/// This page is specifically designed for sellers who have multiple
+/// confirmed orders and want to plan an optimized delivery route.
+/// Users can select which orders to include before the route is calculated.
 class OrderTourSelectionPage extends StatefulWidget {
   final List<Order> confirmedOrders;
 
@@ -12,15 +56,26 @@ class OrderTourSelectionPage extends StatefulWidget {
 }
 
 class _OrderTourSelectionPageState extends State<OrderTourSelectionPage> {
+  /// Set of order IDs that are currently selected
+  ///
+  /// Using Set for O(1) lookup performance when checking if order is selected.
+  /// Stores IDs rather than full Order objects to minimize memory usage.
   Set<String> _selectedOrderIds = {};
 
   @override
   void initState() {
     super.initState();
-    // Pre-select all orders
+    // Pre-select all orders for convenience (user can deselect if needed)
     _selectedOrderIds = widget.confirmedOrders.map((o) => o.id).toSet();
   }
 
+  /// Toggles selection state for a specific order
+  ///
+  /// If the order is currently selected, it will be deselected.
+  /// If the order is not selected, it will be selected.
+  ///
+  /// **Parameters:**
+  /// - [orderId]: The unique identifier of the order to toggle
   void _toggleSelection(String orderId) {
     setState(() {
       if (_selectedOrderIds.contains(orderId)) {
@@ -31,18 +86,37 @@ class _OrderTourSelectionPageState extends State<OrderTourSelectionPage> {
     });
   }
 
+  /// Selects all available orders
+  ///
+  /// Updates the selection set to include all orders from [widget.confirmedOrders].
+  /// Useful when user wants to quickly include all orders in the tour.
   void _selectAll() {
     setState(() {
       _selectedOrderIds = widget.confirmedOrders.map((o) => o.id).toSet();
     });
   }
 
+  /// Deselects all orders
+  ///
+  /// Clears the selection set completely.
+  /// Useful when user wants to start selection from scratch.
   void _deselectAll() {
     setState(() {
       _selectedOrderIds.clear();
     });
   }
 
+  /// Starts the delivery tour with selected orders
+  ///
+  /// **Behavior:**
+  /// 1. Filters confirmed orders to only include selected ones
+  /// 2. Validates that at least one order is selected
+  /// 3. If valid, navigates to [OrderTourPage] with selected orders
+  /// 4. If invalid, shows warning snackbar
+  ///
+  /// **Validation:**
+  /// - Minimum 1 order required
+  /// - Shows orange warning snackbar if validation fails
   void _startTour() {
     final selectedOrders = widget.confirmedOrders
         .where((o) => _selectedOrderIds.contains(o.id))

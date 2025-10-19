@@ -44,6 +44,9 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/order_service.dart';
 import '../models/order.dart';
+import '../helpers/order_status_helper.dart';
+import '../widgets/orders/status_change_dialog.dart';
+import '../utils/error_utils.dart';
 import 'login_page.dart';
 import 'order_map_page.dart';
 import 'order_tour_selection_page.dart';
@@ -281,187 +284,44 @@ class _SellerOrdersPageState extends State<SellerOrdersPage>
 
   /// Show dialog for changing order status
   ///
-  /// Presents available status transitions based on current status:
-  /// - pending → confirmed or refused
-  /// - confirmed → delivered or refused
-  /// - delivered/refused → no changes allowed
-  ///
-  /// After status selection, shows second dialog for optional seller notes.
-  ///
-  /// Updates order via OrderService and reloads order list on success.
-  /// Shows success/error feedback via SnackBar.
+  /// Delegates to StatusChangeDialog widget for UI,
+  /// then calls OrderService to persist the change.
   ///
   /// Parameters:
   /// - [order]: Order to update
   Future<void> _showStatusChangeDialog(Order order) async {
-    // Define available status transitions based on current status
-    final Map<String, String> availableStatuses = {};
-
-    if (order.status == 'pending') {
-      availableStatuses['confirmed'] = '✅ Confirmer la commande';
-      availableStatuses['refused'] = '❌ Refuser la commande';
-    } else if (order.status == 'confirmed') {
-      availableStatuses['delivered'] = '📦 Marquer comme livrée';
-      availableStatuses['refused'] = '❌ Refuser';
-    }
-
-    // No transitions available (order is delivered or refused)
-    if (availableStatuses.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Aucun changement de statut disponible'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    // Show status selection dialog
-    final selectedStatus = await showDialog<String>(
+    // Delegate to reusable widget
+    final result = await StatusChangeDialog.show(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Changer le statut de "${order.book.title}"'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Current status
-            Text(
-              'Statut actuel: ${order.statusDisplay}',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[700],
-              ),
-            ),
-            const SizedBox(height: _kMajorSpacing),
-            const Text('Choisissez le nouveau statut:'),
-            const SizedBox(height: _kMajorSpacing - _kTinySpacing),
-
-            // Status option buttons
-            ...availableStatuses.entries.map(
-              (entry) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: _kDialogPadding),
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context, entry.key),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, _kDialogButtonHeight),
-                    backgroundColor: entry.key == 'delivered'
-                        ? Colors.green
-                        : entry.key == 'confirmed'
-                            ? Colors.blue
-                            : Colors.red,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: Text(entry.value),
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
-          ),
-        ],
-      ),
+      order: order,
     );
 
-    // User cancelled status selection
-    if (selectedStatus == null) return;
-
-    // Show dialog to add seller notes
-    final notesController = TextEditingController();
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Ajouter une note (optionnel)'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Voulez-vous ajouter une note pour le client ?',
-              style: TextStyle(color: Colors.grey[700]),
-            ),
-            const SizedBox(height: _kMajorSpacing),
-            TextField(
-              controller: notesController,
-              decoration: const InputDecoration(
-                hintText: 'Ex: Livraison prévue demain...',
-                border: OutlineInputBorder(),
-                labelText: 'Note du vendeur',
-              ),
-              maxLines: 3,
-              maxLength: _kMaxSellerNotesLength,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Continuer'),
-          ),
-        ],
-      ),
-    );
-
-    // User cancelled notes dialog
-    if (confirmed != true) return;
+    if (result == null) return; // User cancelled
 
     // Update order status via API
     try {
-      final notes = notesController.text.trim();
       await _orderService.updateOrderStatus(
         order.id,
-        selectedStatus,
-        notes: notes.isNotEmpty ? notes : null,
+        result.newStatus,
+        notes: result.notes,
       );
 
       if (mounted) {
-        // Build success message based on new status
-        String successMessage = '';
-        switch (selectedStatus) {
-          case 'confirmed':
-            successMessage = '✅ ${order.book.title} confirmée et prête à livrer';
-            break;
-          case 'delivered':
-            successMessage = '📦 ${order.book.title} marquée comme livrée';
-            break;
-          case 'refused':
-            successMessage = '❌ ${order.book.title} refusée';
-            break;
-        }
-
-        // Show success feedback
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(successMessage),
-            backgroundColor: Colors.green,
-          ),
+        // Show success feedback using helper
+        final successMessage = StatusChangeDialog.buildSuccessMessage(
+          result.newStatus,
+          order.book.title,
         );
+        ErrorUtils.showSuccessSnackBar(context, successMessage);
 
         // Reload orders to reflect status change
         _loadOrders();
       }
     } catch (e) {
       if (mounted) {
-        // Clean up error message
-        String errorMsg = e.toString();
-        if (errorMsg.startsWith('Exception: ')) {
-          errorMsg = errorMsg.substring(_kExceptionPrefixLength);
-        }
-
-        // Show error feedback
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMsg),
-            backgroundColor: Colors.red,
-          ),
-        );
+        // Show error feedback using utility
+        final errorMsg = ErrorUtils.getErrorMessage(e);
+        ErrorUtils.showErrorSnackBar(context, errorMsg);
       }
     }
   }
@@ -491,8 +351,8 @@ class _SellerOrdersPageState extends State<SellerOrdersPage>
         title: Row(
           children: [
             Icon(
-              _getStatusIcon(order.status),
-              color: _getStatusColor(order.status),
+              OrderStatusHelper.getIcon(order.status),
+              color: OrderStatusHelper.getColor(order.status),
             ),
             const SizedBox(width: _kSmallSpacing),
             const Text('Détails de la commande'),
@@ -665,78 +525,81 @@ class _SellerOrdersPageState extends State<SellerOrdersPage>
     }
   }
 
+  // All status helper methods removed - now using OrderStatusHelper!
+
   // ---------------------------------------------------------------------------
-  // STATUS HELPERS
+  // FLOATING ACTION BUTTONS
   // ---------------------------------------------------------------------------
 
-  /// Get color for order status
+  /// Build floating action buttons for map and route planning
   ///
-  /// Color coding:
-  /// - pending: orange (awaiting action)
-  /// - confirmed: blue (ready to deliver)
-  /// - delivered: green (completed)
-  /// - refused: red (rejected)
-  /// - default: grey (unknown)
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'pending':
-        return Colors.orange;
-      case 'confirmed':
-        return Colors.blue;
-      case 'delivered':
-        return Colors.green;
-      case 'refused':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  /// Get icon for order status
+  /// Shows two FABs when there are confirmed orders:
+  /// 1. Route planning button (purple) - Opens tour selection page
+  /// 2. Map view button (blue) - Opens order map page
   ///
-  /// Icon mapping:
-  /// - pending: schedule (clock)
-  /// - confirmed: check_circle_outline (outlined check)
-  /// - delivered: check_circle (filled check)
-  /// - refused: cancel (X)
-  /// - default: help_outline (question mark)
-  IconData _getStatusIcon(String status) {
-    switch (status) {
-      case 'pending':
-        return Icons.schedule;
-      case 'confirmed':
-        return Icons.check_circle_outline;
-      case 'delivered':
-        return Icons.check_circle;
-      case 'refused':
-        return Icons.cancel;
-      default:
-        return Icons.help_outline;
-    }
-  }
-
-  // ---------------------------------------------------------------------------
-  // FILTER TEXT
-  // ---------------------------------------------------------------------------
-
-  /// Get localized filter text for empty state
+  /// Returns null if no confirmed orders available.
   ///
-  /// Returns French text based on current filter:
-  /// - confirmed: "à livrer"
-  /// - delivered: "livrée"
-  /// - pending: "en attente"
-  /// - all: "trouvée"
-  String _getFilterText() {
-    switch (_filterStatus) {
-      case 'confirmed':
-        return 'à livrer';
-      case 'delivered':
-        return 'livrée';
-      case 'pending':
-        return 'en attente';
-      default:
-        return 'trouvée';
-    }
+  /// Parameters:
+  /// - [confirmedOrders]: List of confirmed orders
+  ///
+  /// Returns:
+  /// Column with two FABs, or null if no confirmed orders
+  Widget? _buildFloatingActionButtons(List<Order> confirmedOrders) {
+    if (confirmedOrders.isEmpty) return null;
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        // Route planning FAB
+        FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => OrderTourSelectionPage(
+                  confirmedOrders: confirmedOrders,
+                ),
+              ),
+            );
+          },
+          heroTag: 'tour',
+          backgroundColor: Colors.deepPurple,
+          foregroundColor: Colors.white,
+          icon: const Icon(Icons.route, color: Colors.white),
+          label: const Text(
+            'Planifier Tournée',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        const SizedBox(height: _kFabSpacing),
+
+        // Map view FAB
+        FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => OrderMapPage(orders: confirmedOrders),
+              ),
+            );
+          },
+          heroTag: 'map',
+          backgroundColor: Colors.blue[700],
+          foregroundColor: Colors.white,
+          icon: const Icon(Icons.map, color: Colors.white),
+          label: Text(
+            'Carte (${confirmedOrders.length})',
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -854,7 +717,7 @@ class _SellerOrdersPageState extends State<SellerOrdersPage>
                             ),
                             const SizedBox(height: _kSmallSpacing),
                             Text(
-                              'Aucune commande ${_getFilterText()}',
+                              'Aucune commande ${OrderStatusHelper.getFilterEmptyText(_filterStatus)}',
                               style: TextStyle(color: Colors.grey[600]),
                             ),
                           ],
@@ -873,9 +736,9 @@ class _SellerOrdersPageState extends State<SellerOrdersPage>
                             child: ListTile(
                               // Status indicator avatar
                               leading: CircleAvatar(
-                                backgroundColor: _getStatusColor(order.status),
+                                backgroundColor: OrderStatusHelper.getColor(order.status),
                                 child: Icon(
-                                  _getStatusIcon(order.status),
+                                  OrderStatusHelper.getIcon(order.status),
                                   color: Colors.white,
                                 ),
                               ),
@@ -909,7 +772,7 @@ class _SellerOrdersPageState extends State<SellerOrdersPage>
                                   : IconButton(
                                       icon: Icon(
                                         Icons.swap_horiz,
-                                        color: _getStatusColor(order.status),
+                                        color: OrderStatusHelper.getColor(order.status),
                                       ),
                                       tooltip: 'Changer statut',
                                       onPressed: () =>
@@ -928,62 +791,7 @@ class _SellerOrdersPageState extends State<SellerOrdersPage>
       // ========================================================================
       // FLOATING ACTION BUTTONS
       // ========================================================================
-      // Show FABs only if there are confirmed orders
-      floatingActionButton: confirmedOrders.isNotEmpty
-          ? Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                // Route planning FAB
-                FloatingActionButton.extended(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => OrderTourSelectionPage(
-                          confirmedOrders: confirmedOrders,
-                        ),
-                      ),
-                    );
-                  },
-                  heroTag: 'tour',
-                  backgroundColor: Colors.deepPurple,
-                  foregroundColor: Colors.white,
-                  icon: const Icon(Icons.route, color: Colors.white),
-                  label: const Text(
-                    'Planifier Tournée',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: _kFabSpacing),
-
-                // Map view FAB
-                FloatingActionButton.extended(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => OrderMapPage(orders: confirmedOrders),
-                      ),
-                    );
-                  },
-                  heroTag: 'map',
-                  backgroundColor: Colors.blue[700],
-                  foregroundColor: Colors.white,
-                  icon: const Icon(Icons.map, color: Colors.white),
-                  label: Text(
-                    'Carte (${confirmedOrders.length})',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            )
-          : null,
+      floatingActionButton: _buildFloatingActionButtons(confirmedOrders),
     );
   }
 }

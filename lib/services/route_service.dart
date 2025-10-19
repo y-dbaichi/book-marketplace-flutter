@@ -125,41 +125,36 @@ class RouteService {
 
   /// OpenRouteService API web address
   /// WHAT IT IS: Like Google Maps, but free and open-source
-  static const String _baseUrl = 'https://api.openrouteservice.org/v2';
+  static const String _baseUrl = AppConstants.openRouteServiceBaseUrl;
 
-  /// API Key - YOUR PASSWORD to use OpenRouteService
+  /// API Key - Securely loaded from environment variable
   ///
   /// WHAT IS AN API KEY?
   /// It's like a password that proves you're allowed to use the service.
   /// This one gives you 2,000 free routes per day.
   ///
-  /// ⚠️ SECURITY WARNING:
-  /// In a real production app, DON'T put the key here!
-  /// Instead, put it in:
-  /// - Environment variables (files not uploaded to GitHub)
-  /// - Your backend server (so users can't see it)
-  /// - Firebase Remote Config (Google's secure storage)
+  /// ✅ SECURE IMPLEMENTATION:
+  /// The API key is now loaded from environment variables at build time.
+  /// This prevents it from being exposed in source code or version control.
+  ///
+  /// HOW TO BUILD WITH API KEY:
+  /// flutter build apk --dart-define=OPENROUTE_API_KEY=your_actual_key_here
   ///
   /// HOW TO GET YOUR OWN KEY (FREE):
   /// 1. Go to https://openrouteservice.org/dev/#/signup
   /// 2. Create free account
   /// 3. Copy your API key
-  /// 4. Replace this key with yours
-  static const String _apiKey =
-      'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjBmYmNiMTA0ZjlhODQ4YjZiNWVmNWJjM2FiODZmZTU0IiwiaCI6Im11cm11cjY0In0=';
+  /// 4. Pass it during build (see command above)
+  static const String _apiKey = AppConstants.openRouteServiceApiKey;
 
   /// Should we use fake data instead of real API?
   ///
-  /// SET TO TRUE IF:
-  /// - Testing without internet
-  /// - You don't have an API key yet
-  /// - Want to save API calls during development
+  /// Controlled by environment variable USE_MOCK_ROUTING
+  /// Default: false (use real API)
   ///
-  /// SET TO FALSE IF:
-  /// - Want real turn-by-turn directions
-  /// - Need accurate distances
-  /// - App is ready for real users
-  static const bool _useMockData = false;
+  /// To enable mock mode during development:
+  /// flutter run --dart-define=USE_MOCK_ROUTING=true
+  static const bool _useMockData = AppConstants.useMockRouting;
 
   // ==========================================================================
   // MAIN PUBLIC METHOD - GET ROUTE

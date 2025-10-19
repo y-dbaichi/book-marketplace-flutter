@@ -53,7 +53,7 @@ class AuthResponse {
   final User user;
 
   /// Constructor
-  AuthResponse({
+  const AuthResponse({
     required this.message,
     required this.token,
     required this.user,

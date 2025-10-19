@@ -37,6 +37,8 @@
 
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../validators/form_validators.dart';
+import '../utils/error_utils.dart';
 import 'seller_orders_page.dart';
 
 // ==============================================================================
@@ -231,11 +233,8 @@ class _LoginPageState extends State<LoginPage> {
         );
       }
     } catch (e) {
-      // Clean up error message - remove "Exception:" prefix
-      String errorMsg = e.toString();
-      if (errorMsg.startsWith('Exception: ')) {
-        errorMsg = errorMsg.substring(_kExceptionPrefixLength);
-      }
+      // Clean up error message using ErrorUtils
+      final errorMsg = ErrorUtils.getErrorMessage(e);
 
       // Display error to user
       setState(() {
@@ -337,15 +336,7 @@ class _LoginPageState extends State<LoginPage> {
                               borderRadius: BorderRadius.circular(_kInputBorderRadius),
                             ),
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your email';
-                            }
-                            if (!value.contains('@')) {
-                              return 'Please enter a valid email';
-                            }
-                            return null;
-                          },
+                          validator: FormValidators.email, // Use centralized validator
                         ),
                         const SizedBox(height: _kMediumSpacing),
 
@@ -361,12 +352,7 @@ class _LoginPageState extends State<LoginPage> {
                               borderRadius: BorderRadius.circular(_kInputBorderRadius),
                             ),
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your password';
-                            }
-                            return null;
-                          },
+                          validator: FormValidators.password, // Use centralized validator
                           onFieldSubmitted: (_) => _handleLogin(), // Submit on Enter
                         ),
 

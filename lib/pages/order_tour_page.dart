@@ -1,3 +1,58 @@
+// Copyright 2025 Yassine Dbaichi
+// Licensed under MIT License
+
+/// Order Tour Planning and Navigation Page
+///
+/// The main delivery route planning interface for sellers. This page integrates
+/// route optimization algorithms with interactive mapping to help sellers plan
+/// and execute efficient delivery tours.
+///
+/// **Core Features:**
+/// 1. **Interactive Map** - OpenStreetMap-based map with custom markers
+/// 2. **Route Optimization** - TSP nearest-neighbor algorithm for optimal order
+/// 3. **Turn-by-Turn Directions** - Detailed navigation instructions from OpenRouteService
+/// 4. **External Navigation** - Integration with Google Maps and Waze
+/// 5. **Order Management** - Update order status directly from the map
+/// 6. **GPS Integration** - Use current location or manually set start point
+///
+/// **GIS Algorithms:**
+/// - **Haversine Formula**: Calculate real-world distances on Earth's curved surface
+/// - **Nearest-Neighbor TSP**: Optimize delivery order to minimize travel distance
+/// - **OpenRouteService API**: Real-time routing with traffic and road data
+///
+/// **User Journey:**
+/// 1. View all selected orders as markers on the map
+/// 2. Set starting point (GPS or manual tap)
+/// 3. Tap "Calculer" to optimize route and get turn-by-turn directions
+/// 4. Review route distance, duration, and detailed steps
+/// 5. Tap "Naviguer" to open Google Maps or Waze for actual navigation
+/// 6. Mark orders as delivered as you complete each stop
+///
+/// **Technical Implementation:**
+/// - State Management: Local setState for UI updates
+/// - Map Library: flutter_map with OpenStreetMap tiles
+/// - Routing: OpenRouteService REST API
+/// - Location: Geolocator package for GPS
+/// - Navigation: Deep links to Google Maps/Waze
+///
+/// **Example Usage:**
+/// ```dart
+/// final selectedOrders = await getConfirmedOrders();
+/// Navigator.push(
+///   context,
+///   MaterialPageRoute(
+///     builder: (context) => OrderTourPage(orders: selectedOrders),
+///   ),
+/// );
+/// ```
+///
+/// **See Also:**
+/// - [RouteService] for route optimization algorithms
+/// - [OrderService] for order management
+/// - [OrderTourSelectionPage] for selecting which orders to include
+/// - [Order] model for order data structure
+library;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -6,7 +61,31 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/order.dart';
 import '../services/route_service.dart';
 import '../services/order_service.dart';
+import '../helpers/route_helper.dart';
+import '../helpers/order_status_helper.dart';
+import '../widgets/orders/status_change_dialog.dart';
+import '../widgets/navigation/navigation_app_selector.dart';
+import '../utils/error_utils.dart';
 
+/// Interactive delivery tour planning and navigation page
+///
+/// This is the most complex page in the application, combining GIS algorithms,
+/// interactive mapping, and external navigation to create a complete
+/// delivery management solution.
+///
+/// **State Variables:**
+/// - [orders]: List of orders to deliver (passed from parent)
+/// - [_startPoint]: User-selected starting location for the tour
+/// - [_optimizedOrders]: Orders reordered for optimal delivery sequence
+/// - [_routeLines]: Polylines representing the calculated route on the map
+/// - [_turnByTurnInstructions]: Detailed navigation steps from API
+/// - [_routeInfo]: Summary string (distance + duration)
+///
+/// **Key Methods:**
+/// - [_calculateRoute]: Optimizes order sequence and fetches turn-by-turn directions
+/// - [_showNavigationOptions]: Shows Google Maps vs Waze selection dialog
+/// - [_showOrderDetails]: Displays order information in bottom sheet
+/// - [_showStatusChangeDialog]: Allows updating order status (delivered/refused)
 class OrderTourPage extends StatefulWidget {
   final List<Order> orders;
 
@@ -198,20 +277,12 @@ class _OrderTourPageState extends State<OrderTourPage> {
 
     _fitMapToRoute(points);
 
-    // Calculate simple distance
-    double totalDistance = 0;
-    for (int i = 0; i < points.length - 1; i++) {
-      totalDistance += _calculateDistance(points[i], points[i + 1]);
-    }
+    // Calculate simple distance using RouteHelper
+    double totalDistance = RouteHelper.calculateTotalDistance(points);
 
     setState(() {
-      _routeInfo = 'Distance estimée: ${(totalDistance / 1000).toStringAsFixed(1)} km';
+      _routeInfo = 'Distance estimée: ${RouteHelper.formatDistance(totalDistance)}';
     });
-  }
-
-  double _calculateDistance(LatLng p1, LatLng p2) {
-    const Distance distance = Distance();
-    return distance.as(LengthUnit.Meter, p1, p2);
   }
 
   void _processRouteData(Map<String, dynamic> routeData) {
@@ -263,23 +334,17 @@ class _OrderTourPageState extends State<OrderTourPage> {
           ];
         });
 
-        // Calculate distance from route points
-        double totalDistance = 0;
-        for (int i = 0; i < routePoints.length - 1; i++) {
-          totalDistance += _calculateDistance(routePoints[i], routePoints[i + 1]);
-        }
+        // Calculate distance from route points using RouteHelper
+        double totalDistance = RouteHelper.calculateTotalDistance(routePoints);
 
         // Use calculated distance and API duration (accurate road-based estimates)
         final finalDistance = totalDistance;
         final finalDuration = (duration != null && duration > 0)
             ? duration
-            : (totalDistance / 1000) / 40 * 3600; // Fallback: 40 km/h in seconds
-
-        final distanceKm = (finalDistance / 1000).toStringAsFixed(1);
-        final durationMin = (finalDuration / 60).toStringAsFixed(0);
+            : RouteHelper.estimateDuration(totalDistance); // Use helper for estimation
 
         setState(() {
-          _routeInfo = '📏 $distanceKm km • ⏱️ $durationMin min';
+          _routeInfo = RouteHelper.formatRouteInfo(finalDistance, finalDuration);
         });
 
         _fitMapToRoute(routePoints);
@@ -648,388 +713,57 @@ class _OrderTourPageState extends State<OrderTourPage> {
     }
   }
 
-  void _showNavigationOptions() {
-    if (_startPoint == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez d\'abord calculer la tournée'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
+  // Navigation app selection methods removed - now using NavigationAppSelector widget!
 
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Naviguer avec',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-
-            // Google Maps Option
-            InkWell(
-              onTap: () {
-                Navigator.pop(context);
-                _openGoogleMaps();
-              },
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[300]!),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: Colors.green[50],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.map,
-                        color: Colors.green[700],
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Google Maps',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            'Route complète avec tous les arrêts optimisés',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Waze Option
-            InkWell(
-              onTap: () {
-                Navigator.pop(context);
-                _openWaze();
-              },
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[300]!),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: Colors.blue[50],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.navigation,
-                        color: Colors.blue[700],
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Waze',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            'Vers destination finale • Utilise GPS actuel',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _openGoogleMaps() async {
-    final ordersToNavigate = _optimizedOrders.isNotEmpty ? _optimizedOrders : widget.orders;
-
-    if (ordersToNavigate.isEmpty) {
-      return;
-    }
-
-    // Build Google Maps URL with multiple waypoints
-    final StringBuffer urlBuffer = StringBuffer();
-    urlBuffer.write('https://www.google.com/maps/dir/?api=1');
-
-    // Origin (starting point)
-    urlBuffer.write('&origin=${_startPoint!.latitude},${_startPoint!.longitude}');
-
-    // Waypoints (all deliveries except the last one)
-    if (ordersToNavigate.length > 1) {
-      urlBuffer.write('&waypoints=');
-      for (int i = 0; i < ordersToNavigate.length - 1; i++) {
-        final loc = ordersToNavigate[i].buyerLocation;
-        if (loc != null) {
-          if (i > 0) urlBuffer.write('|');
-          urlBuffer.write('${loc.latitude},${loc.longitude}');
-        }
-      }
-    }
-
-    // Destination (last delivery)
-    final lastLoc = ordersToNavigate.last.buyerLocation;
-    if (lastLoc != null) {
-      urlBuffer.write('&destination=${lastLoc.latitude},${lastLoc.longitude}');
-    }
-
-    urlBuffer.write('&travelmode=driving');
-
-    final Uri googleMapsUri = Uri.parse(urlBuffer.toString());
-
-    try {
-      if (await canLaunchUrl(googleMapsUri)) {
-        await launchUrl(googleMapsUri, mode: LaunchMode.externalApplication);
-      } else {
-        throw Exception('Cannot launch Google Maps');
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Google Maps n\'est pas installé'),
-            action: SnackBarAction(
-              label: 'Installer',
-              onPressed: () async {
-                final Uri playStoreUri = Uri.parse(
-                  'https://play.google.com/store/apps/details?id=com.google.android.apps.maps',
-                );
-                await launchUrl(playStoreUri, mode: LaunchMode.externalApplication);
-              },
-            ),
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _openWaze() async {
-    final ordersToNavigate = _optimizedOrders.isNotEmpty ? _optimizedOrders : widget.orders;
-
-    if (ordersToNavigate.isEmpty) {
-      return;
-    }
-
-    // Waze doesn't support multiple waypoints in a single URL like Google Maps
-    // So we'll navigate to the final destination
-    // The driver can manually add stops if needed in Waze
-    final lastLoc = ordersToNavigate.last.buyerLocation;
-
-    if (lastLoc == null) {
-      return;
-    }
-
-    // Waze deep link format
-    final Uri wazeUri = Uri.parse(
-      'https://waze.com/ul?ll=${lastLoc.latitude},${lastLoc.longitude}&navigate=yes',
-    );
-
-    try {
-      if (await canLaunchUrl(wazeUri)) {
-        await launchUrl(wazeUri, mode: LaunchMode.externalApplication);
-      } else {
-        throw Exception('Cannot launch Waze');
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Waze n\'est pas installé'),
-            action: SnackBarAction(
-              label: 'Installer',
-              onPressed: () async {
-                final Uri playStoreUri = Uri.parse(
-                  'https://play.google.com/store/apps/details?id=com.waze',
-                );
-                await launchUrl(playStoreUri, mode: LaunchMode.externalApplication);
-              },
-            ),
-          ),
-        );
-      }
-    }
-  }
-
+  /// Show status change dialog using reusable StatusChangeDialog widget
+  ///
+  /// Delegates to StatusChangeDialog.show() for UI, then updates the order
+  /// and manages the order list state.
   Future<void> _showStatusChangeDialog(Order order) async {
     Navigator.pop(context); // Close bottom sheet
 
-    // Define status options based on current status
-    final Map<String, String> availableStatuses = {};
-
-    if (order.status == 'pending') {
-      availableStatuses['confirmed'] = '✅ À livrer';
-      availableStatuses['refused'] = '❌ Refuser';
-    } else if (order.status == 'confirmed') {
-      availableStatuses['delivered'] = '📦 Livrée';
-      availableStatuses['refused'] = '❌ Refuser';
-    }
-
-    if (availableStatuses.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Aucun changement de statut disponible'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    final selectedStatus = await showDialog<String>(
+    // Delegate to reusable widget
+    final result = await StatusChangeDialog.show(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Changer le statut de "${order.book.title}"'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Statut actuel: ${order.statusDisplay}',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[700],
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text('Choisissez le nouveau statut:'),
-            const SizedBox(height: 12),
-            ...availableStatuses.entries.map((entry) =>
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context, entry.key),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 48),
-                    backgroundColor: entry.key == 'delivered'
-                        ? Colors.green
-                        : entry.key == 'confirmed'
-                            ? Colors.blue
-                            : Colors.red,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: Text(entry.value),
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
-          ),
-        ],
-      ),
+      order: order,
     );
 
-    if (selectedStatus != null) {
-      try {
-        await _orderService.updateOrderStatus(order.id, selectedStatus);
+    if (result == null) return; // User cancelled
 
-        if (mounted) {
-          String successMessage = '';
-          switch (selectedStatus) {
-            case 'confirmed':
-              successMessage = '✅ ${order.book.title} confirmée et prête à livrer';
-              break;
-            case 'delivered':
-              successMessage = '📦 ${order.book.title} marquée comme livrée';
-              break;
-            case 'refused':
-              successMessage = '❌ ${order.book.title} refusée';
-              break;
-          }
+    // Update order status via API
+    try {
+      await _orderService.updateOrderStatus(
+        order.id,
+        result.newStatus,
+        notes: result.notes,
+      );
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(successMessage),
-              backgroundColor: Colors.green,
-            ),
-          );
+      if (mounted) {
+        // Show success feedback using helper
+        final successMessage = StatusChangeDialog.buildSuccessMessage(
+          result.newStatus,
+          order.book.title,
+        );
+        ErrorUtils.showSuccessSnackBar(context, successMessage);
 
-          // Remove from current route if delivered
-          if (selectedStatus == 'delivered') {
-            setState(() {
-              widget.orders.remove(order);
-              _optimizedOrders.remove(order);
-            });
+        // Remove from current route if delivered
+        if (result.newStatus == OrderStatusHelper.statusDelivered) {
+          setState(() {
+            widget.orders.remove(order);
+            _optimizedOrders.remove(order);
+          });
 
-            // If no more orders, go back
-            if (widget.orders.isEmpty) {
-              Navigator.pop(context);
-            }
+          // If no more orders, go back
+          if (widget.orders.isEmpty) {
+            Navigator.pop(context);
           }
         }
-      } catch (e) {
-        if (mounted) {
-          // Clean up error message
-          String errorMsg = e.toString();
-          if (errorMsg.startsWith('Exception: ')) {
-            errorMsg = errorMsg.substring(11);
-          }
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(errorMsg),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
+      }
+    } catch (e) {
+      if (mounted) {
+        // Show error feedback using utility
+        final errorMsg = ErrorUtils.getErrorMessage(e);
+        ErrorUtils.showErrorSnackBar(context, errorMsg);
       }
     }
   }
@@ -1058,67 +792,7 @@ class _OrderTourPageState extends State<OrderTourPage> {
       body: Column(
         children: [
           // Control Panel
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: Colors.grey[100],
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        _startPoint == null
-                            ? '📍 Cliquez sur la carte ou utilisez GPS'
-                            : '✅ Point de départ défini',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: _startPoint == null ? Colors.orange : Colors.green,
-                        ),
-                      ),
-                    ),
-                    if (_routeInfo.isNotEmpty) ...[
-                      ElevatedButton.icon(
-                        onPressed: _showNavigationOptions,
-                        icon: const Icon(Icons.navigation, size: 20),
-                        label: const Text('Naviguer'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.indigo[600],
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    ElevatedButton.icon(
-                      onPressed: _isLoadingRoute ? null : _calculateRoute,
-                      icon: _isLoadingRoute
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.route),
-                      label: Text(_isLoadingRoute ? 'Calcul...' : 'Calculer'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-                if (_routeInfo.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    _routeInfo,
-                    style: const TextStyle(
-                      color: Colors.blue,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
+          _buildControlPanel(),
 
           // Map
           Expanded(
@@ -1151,142 +825,202 @@ class _OrderTourPageState extends State<OrderTourPage> {
           ),
 
           // Turn-by-Turn Directions Panel
-          if (_turnByTurnInstructions.isNotEmpty)
-            Container(
-              constraints: const BoxConstraints(maxHeight: 250),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 4,
-                    offset: const Offset(0, -2),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.indigo[600],
-                      border: Border(
-                        bottom: BorderSide(color: Colors.grey[300]!),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.directions, color: Colors.white, size: 20),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Itinéraire détaillé (${_turnByTurnInstructions.length} étapes)',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: ListView.separated(
-                      padding: const EdgeInsets.all(8),
-                      itemCount: _turnByTurnInstructions.length,
-                      separatorBuilder: (context, index) => Divider(
-                        height: 1,
-                        color: Colors.grey[300],
-                      ),
-                      itemBuilder: (context, index) {
-                        final step = _turnByTurnInstructions[index];
-                        final instruction = step['instruction'] ?? '';
-                        final distance = step['distance'];
-                        final type = step['type'] ?? 0;
-
-                        return ListTile(
-                          dense: true,
-                          leading: CircleAvatar(
-                            radius: 16,
-                            backgroundColor: _getInstructionColor(type),
-                            child: Icon(
-                              _getInstructionIcon(type),
-                              size: 16,
-                              color: Colors.white,
-                            ),
-                          ),
-                          title: Text(
-                            instruction,
-                            style: const TextStyle(fontSize: 13),
-                          ),
-                          trailing: distance != null && distance > 0
-                              ? Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue[50],
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    _formatDistance(distance),
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.blue[700],
-                                    ),
-                                  ),
-                                )
-                              : null,
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          _buildTurnByTurnDirectionsPanel(),
         ],
       ),
     );
   }
 
-  IconData _getInstructionIcon(int type) {
-    // OpenRouteService instruction types
-    switch (type) {
-      case 0: return Icons.arrow_upward; // Straight
-      case 1: return Icons.turn_right; // Right
-      case 2: return Icons.turn_left; // Left
-      case 3: return Icons.turn_sharp_right; // Sharp right
-      case 4: return Icons.turn_sharp_left; // Sharp left
-      case 5: return Icons.turn_slight_right; // Slight right
-      case 6: return Icons.turn_slight_left; // Slight left
-      case 7: return Icons.arrow_upward; // Continue
-      case 10: return Icons.flag; // Arrive/Depart
-      case 11: return Icons.place; // Arrive
-      case 12: return Icons.u_turn_left; // U-turn
-      default: return Icons.navigation;
+  // Helper methods removed - now using RouteHelper!
+
+  /// Build turn-by-turn directions panel
+  ///
+  /// Creates a scrollable panel showing detailed navigation instructions
+  /// from OpenRouteService API. Only displayed when route has been calculated.
+  ///
+  /// Returns:
+  /// Widget showing turn-by-turn directions, or empty container if no directions
+  Widget _buildTurnByTurnDirectionsPanel() {
+    if (_turnByTurnInstructions.isEmpty) {
+      return const SizedBox.shrink();
     }
+
+    return Container(
+      constraints: const BoxConstraints(maxHeight: 250),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.indigo[600],
+              border: Border(
+                bottom: BorderSide(color: Colors.grey[300]!),
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.directions, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Itinéraire détaillé (${_turnByTurnInstructions.length} étapes)',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Scrollable list of directions
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.all(8),
+              itemCount: _turnByTurnInstructions.length,
+              separatorBuilder: (context, index) => Divider(
+                height: 1,
+                color: Colors.grey[300],
+              ),
+              itemBuilder: (context, index) {
+                final step = _turnByTurnInstructions[index];
+                final instruction = step['instruction'] ?? '';
+                final distance = step['distance'];
+                final type = step['type'] ?? 0;
+
+                return ListTile(
+                  dense: true,
+                  leading: CircleAvatar(
+                    radius: 16,
+                    backgroundColor: RouteHelper.getInstructionColor(type),
+                    child: Icon(
+                      RouteHelper.getInstructionIcon(type),
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                  ),
+                  title: Text(
+                    instruction,
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                  trailing: distance != null && distance > 0
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.blue[50],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            RouteHelper.formatDistance(distance),
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.blue[700],
+                            ),
+                          ),
+                        )
+                      : null,
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
-  Color _getInstructionColor(int type) {
-    switch (type) {
-      case 10: return Colors.green; // Start
-      case 11: return Colors.red; // End
-      case 1:
-      case 3: return Colors.orange; // Right turns
-      case 2:
-      case 4: return Colors.blue; // Left turns
-      default: return Colors.indigo;
-    }
-  }
-
-  String _formatDistance(dynamic distance) {
-    final distanceMeters = (distance is int) ? distance.toDouble() : distance as double;
-    if (distanceMeters >= 1000) {
-      return '${(distanceMeters / 1000).toStringAsFixed(1)} km';
-    } else {
-      return '${distanceMeters.toStringAsFixed(0)} m';
-    }
+  /// Build control panel with route calculation buttons
+  ///
+  /// Shows start point status, calculate button, and navigate button
+  ///
+  /// Returns:
+  /// Widget containing control panel UI
+  Widget _buildControlPanel() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      color: Colors.grey[100],
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  _startPoint == null
+                      ? '📍 Cliquez sur la carte ou utilisez GPS'
+                      : '✅ Point de départ défini',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: _startPoint == null ? Colors.orange : Colors.green,
+                  ),
+                ),
+              ),
+              if (_routeInfo.isNotEmpty) ...[
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // Use NavigationAppSelector widget
+                    final ordersToNavigate = _optimizedOrders.isNotEmpty
+                        ? _optimizedOrders
+                        : widget.orders;
+                    NavigationAppSelector.show(
+                      context: context,
+                      startPoint: _startPoint,
+                      orders: ordersToNavigate,
+                    );
+                  },
+                  icon: const Icon(Icons.navigation, size: 20),
+                  label: const Text('Naviguer'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.indigo[600],
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              ElevatedButton.icon(
+                onPressed: _isLoadingRoute ? null : _calculateRoute,
+                icon: _isLoadingRoute
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.route),
+                label: Text(_isLoadingRoute ? 'Calcul...' : 'Calculer'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          if (_routeInfo.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              _routeInfo,
+              style: const TextStyle(
+                color: Colors.blue,
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }

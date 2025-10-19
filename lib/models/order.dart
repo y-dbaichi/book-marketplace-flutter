@@ -79,7 +79,7 @@ class Order {
   final DateTime updatedAt;
 
   /// Constructor
-  Order({
+  const Order({
     required this.id,
     required this.book,
     required this.buyer,
@@ -193,7 +193,7 @@ class OrderBook {
   final double? price;
 
   /// Constructor
-  OrderBook({
+  const OrderBook({
     required this.id,
     required this.title,
     required this.author,
@@ -234,7 +234,7 @@ class OrderUser {
   final UserProfile? profile;
 
   /// Constructor
-  OrderUser({
+  const OrderUser({
     required this.id,
     required this.email,
     this.phone,
@@ -270,7 +270,7 @@ class UserProfile {
   final String? lastName;
 
   /// Constructor
-  UserProfile({
+  const UserProfile({
     this.firstName,
     this.lastName,
   });
@@ -314,7 +314,7 @@ class OrderLocation {
   final String? address;
 
   /// Constructor
-  OrderLocation({
+  const OrderLocation({
     required this.coordinates,
     this.name,
     this.address,
