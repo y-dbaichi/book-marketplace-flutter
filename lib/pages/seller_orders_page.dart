@@ -46,6 +46,7 @@ import '../services/order_service.dart';
 import '../models/order.dart';
 import '../helpers/order_status_helper.dart';
 import '../widgets/orders/status_change_dialog.dart';
+import '../widgets/orders/order_detail_bottom_sheet.dart';
 import '../utils/error_utils.dart';
 import 'login_page.dart';
 import 'order_map_page.dart';
@@ -332,155 +333,15 @@ class _SellerOrdersPageState extends State<SellerOrdersPage>
 
   /// Show detailed information dialog for an order
   ///
-  /// Displays:
-  /// - Book information (title, author)
-  /// - Customer information (name, phone)
-  /// - Order details (quantity, price, status)
-  /// - Delivery location (if available)
-  /// - Buyer notes (if any)
-  /// - Seller notes (if any)
-  ///
-  /// Provides button to change status (if order not finalized).
+  /// Delegates to OrderDetailBottomSheet widget for consistent display
   ///
   /// Parameters:
   /// - [order]: Order to display
   Future<void> _showOrderDetails(Order order) async {
-    await showDialog(
+    await OrderDetailBottomSheet.showAsDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(
-              OrderStatusHelper.getIcon(order.status),
-              color: OrderStatusHelper.getColor(order.status),
-            ),
-            const SizedBox(width: _kSmallSpacing),
-            const Text('Détails de la commande'),
-          ],
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Book and customer info
-              _buildDetailRow('Livre', order.book.title, Icons.book),
-              _buildDetailRow('Auteur', order.book.author, Icons.person),
-              _buildDetailRow('Client', order.buyerName, Icons.account_circle),
-              _buildDetailRow('Téléphone', order.buyer.phone ?? 'N/A', Icons.phone),
-              _buildDetailRow('Quantité', order.quantity.toString(), Icons.numbers),
-              _buildDetailRow(
-                'Prix total',
-                '${order.totalPrice.toStringAsFixed(2)} MAD',
-                Icons.attach_money,
-              ),
-              _buildDetailRow('Statut', order.statusDisplay, Icons.info),
-
-              // Location info (if available)
-              if (order.buyerLocation != null) ...[
-                const Divider(),
-                _buildDetailRow(
-                  'Adresse',
-                  order.buyerLocation!.address ?? 'N/A',
-                  Icons.location_on,
-                ),
-                _buildDetailRow(
-                  'Coordonnées',
-                  '${order.buyerLocation!.latitude.toStringAsFixed(6)}, '
-                  '${order.buyerLocation!.longitude.toStringAsFixed(6)}',
-                  Icons.map,
-                ),
-              ],
-
-              // Buyer notes
-              if (order.buyerNotes != null) ...[
-                const Divider(),
-                const Text(
-                  'Notes du client:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: _kTinySpacing),
-                Text(order.buyerNotes!),
-              ],
-
-              // Seller notes
-              if (order.sellerNotes != null) ...[
-                const Divider(),
-                const Text(
-                  'Mes notes:',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                  ),
-                ),
-                const SizedBox(height: _kTinySpacing),
-                Text(
-                  order.sellerNotes!,
-                  style: const TextStyle(fontStyle: FontStyle.italic),
-                ),
-              ],
-            ],
-          ),
-        ),
-        actions: [
-          // Change status button (if order not finalized)
-          if (order.status != 'delivered' && order.status != 'refused')
-            TextButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                _showStatusChangeDialog(order);
-              },
-              icon: const Icon(Icons.swap_horiz),
-              label: const Text('Changer statut'),
-            ),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Fermer'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // HELPER WIDGETS
-  // ---------------------------------------------------------------------------
-
-  /// Build a detail row with icon, label, and value
-  ///
-  /// Creates consistent layout for order details:
-  /// [Icon] Label
-  ///        Value
-  ///
-  /// Parameters:
-  /// - [label]: Label text
-  /// - [value]: Value text
-  /// - [icon]: Icon to display
-  Widget _buildDetailRow(String label, String value, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: _kDetailRowPadding),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: _kDetailRowIconSize, color: Colors.grey[600]),
-          const SizedBox(width: _kSmallSpacing),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                ),
-                Text(
-                  value,
-                  style: const TextStyle(fontWeight: FontWeight.w500),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      order: order,
+      onChangeStatus: () => _showStatusChangeDialog(order),
     );
   }
 

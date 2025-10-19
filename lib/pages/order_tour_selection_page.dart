@@ -39,6 +39,7 @@ library;
 
 import 'package:flutter/material.dart';
 import '../models/order.dart';
+import '../widgets/orders/order_selection_list_item.dart';
 import 'order_tour_page.dart';
 
 /// Multi-select page for choosing orders to include in delivery tour
@@ -307,130 +308,13 @@ class _OrderTourSelectionPageState extends State<OrderTourSelectionPage> {
                       final order = availableOrders[index];
                       final isSelected = _selectedOrderIds.contains(order.id);
 
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Card(
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            side: BorderSide(
-                              color: isSelected ? Colors.indigo : Colors.transparent,
-                              width: 2,
-                            ),
-                          ),
-                          color: isSelected ? Colors.indigo.withOpacity(0.05) : Colors.white,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(16),
-                            onTap: () => _toggleSelection(order.id),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Row(
-                                children: [
-                                  // Checkbox/Icon
-                                  Container(
-                                    width: 50,
-                                    height: 50,
-                                    decoration: BoxDecoration(
-                                      color: isSelected ? Colors.indigo : Colors.grey[200],
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Icon(
-                                      isSelected ? Icons.check : Icons.location_on,
-                                      color: isSelected ? Colors.white : Colors.grey[600],
-                                    ),
-                                  ),
-
-                                  const SizedBox(width: 16),
-
-                                  // Order Info
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          order.book.title,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          'Client: ${order.buyerName}',
-                                          style: TextStyle(
-                                            color: Colors.grey[600],
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                        Text(
-                                          order.buyerLocation?.address ?? 'Adresse non disponible',
-                                          style: TextStyle(
-                                            color: Colors.grey[600],
-                                            fontSize: 14,
-                                          ),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Row(
-                                          children: [
-                                            _buildInfoChip(
-                                              Icons.shopping_bag,
-                                              'Qté: ${order.quantity}',
-                                            ),
-                                            const SizedBox(width: 8),
-                                            _buildInfoChip(
-                                              Icons.attach_money,
-                                              '${order.totalPrice.toStringAsFixed(0)} MAD',
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
+                      return OrderSelectionListItem(
+                        order: order,
+                        isSelected: isSelected,
+                        onTap: () => _toggleSelection(order.id),
                       );
                     },
                   ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoChip(IconData icon, String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: Colors.grey[600]),
-          const SizedBox(width: 4),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[700],
-              fontWeight: FontWeight.w500,
-            ),
           ),
         ],
       ),

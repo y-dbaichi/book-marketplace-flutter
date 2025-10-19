@@ -30,7 +30,6 @@ library;
 
 import 'package:flutter/material.dart';
 import '../../models/order.dart';
-import '../../utils/app_strings.dart';
 
 /// Result of status change dialog
 class StatusChangeResult {

@@ -44,6 +44,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../models/order.dart';
+import '../widgets/orders/order_detail_bottom_sheet.dart';
+import '../widgets/map/order_map_marker.dart';
 
 // ==============================================================================
 // CONSTANTS
@@ -54,27 +56,6 @@ const double _kMarkerWidth = 50.0;
 
 /// Marker height for delivery points
 const double _kMarkerHeight = 50.0;
-
-/// Icon size for selected marker
-const double _kSelectedIconSize = 50.0;
-
-/// Icon size for normal (unselected) marker
-const double _kNormalIconSize = 40.0;
-
-/// Quantity badge padding
-const double _kBadgePadding = 2.0;
-
-/// Quantity badge font size (selected)
-const double _kSelectedBadgeFontSize = 12.0;
-
-/// Quantity badge font size (normal)
-const double _kNormalBadgeFontSize = 10.0;
-
-/// Quantity badge vertical position (selected marker)
-const double _kSelectedBadgeTop = 6.0;
-
-/// Quantity badge vertical position (normal marker)
-const double _kNormalBadgeTop = 8.0;
 
 /// Bottom sheet padding
 const double _kBottomSheetPadding = 16.0;
@@ -90,12 +71,6 @@ const double _kLegendTop = 16.0;
 
 /// Legend right position
 const double _kLegendRight = 16.0;
-
-/// Info row icon size
-const double _kInfoIconSize = 16.0;
-
-/// Info row vertical padding
-const double _kInfoRowPadding = 4.0;
 
 /// Space between legend items
 const double _kLegendItemSpacing = 4.0;
@@ -223,12 +198,7 @@ class _OrderMapPageState extends State<OrderMapPage> {
   /// Build markers for all orders with locations
   ///
   /// Creates an interactive marker for each order that has a buyerLocation.
-  /// Each marker:
-  /// - Shows a location pin icon
-  /// - Displays quantity in a circular badge
-  /// - Changes color when selected (blue → red)
-  /// - Changes size when selected (40 → 50)
-  /// - Responds to taps by selecting the order and zooming
+  /// Delegates visual styling to OrderMapMarker widget.
   ///
   /// Returns:
   /// List of Marker widgets for flutter_map MarkerLayer
@@ -240,56 +210,19 @@ class _OrderMapPageState extends State<OrderMapPage> {
       final isSelected = _selectedOrder?.id == order.id;
 
       return Marker(
-        // Marker position from order's buyer location
         point: LatLng(loc.latitude, loc.longitude),
         width: _kMarkerWidth,
         height: _kMarkerHeight,
-
-        // Marker widget with tap handler
-        child: GestureDetector(
+        child: OrderMapMarker(
+          quantity: order.quantity,
+          isSelected: isSelected,
           onTap: () {
-            // Select order and zoom to marker
             setState(() => _selectedOrder = order);
             _mapController.move(
               LatLng(loc.latitude, loc.longitude),
               _kSelectedZoom,
             );
           },
-
-          // Marker visual: pin icon with quantity badge
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              // Location pin icon (color and size based on selection)
-              Icon(
-                Icons.location_on,
-                size: isSelected ? _kSelectedIconSize : _kNormalIconSize,
-                color: isSelected ? Colors.red : Colors.blue,
-              ),
-
-              // Quantity badge (white circle with black text)
-              Positioned(
-                top: isSelected ? _kSelectedBadgeTop : _kNormalBadgeTop,
-                child: Container(
-                  padding: const EdgeInsets.all(_kBadgePadding),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    order.quantity.toString(),
-                    style: TextStyle(
-                      fontSize: isSelected
-                          ? _kSelectedBadgeFontSize
-                          : _kNormalBadgeFontSize,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
         ),
       );
     }).toList();
@@ -364,85 +297,11 @@ class _OrderMapPageState extends State<OrderMapPage> {
                     top: Radius.circular(_kBottomSheetBorderRadius),
                   ),
                 ),
-                child: Padding(
+                child: SingleChildScrollView(
                   padding: const EdgeInsets.all(_kBottomSheetPadding),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Header: Book title and close button
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Book title
-                                Text(
-                                  _selectedOrder!.book.title,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                // Book author
-                                Text(
-                                  'Par ${_selectedOrder!.book.author}',
-                                  style: TextStyle(color: Colors.grey[600]),
-                                ),
-                              ],
-                            ),
-                          ),
-                          // Close button
-                          IconButton(
-                            icon: const Icon(Icons.close),
-                            onPressed: () =>
-                                setState(() => _selectedOrder = null),
-                          ),
-                        ],
-                      ),
-
-                      const Divider(),
-
-                      // Order details
-                      _buildInfoRow(
-                        Icons.person,
-                        'Client',
-                        _selectedOrder!.buyerName,
-                      ),
-                      _buildInfoRow(
-                        Icons.phone,
-                        'Téléphone',
-                        _selectedOrder!.buyer.phone ?? 'N/A',
-                      ),
-                      _buildInfoRow(
-                        Icons.location_on,
-                        'Adresse',
-                        _selectedOrder!.buyerLocation?.address ?? 'N/A',
-                      ),
-                      _buildInfoRow(
-                        Icons.numbers,
-                        'Quantité',
-                        _selectedOrder!.quantity.toString(),
-                      ),
-                      _buildInfoRow(
-                        Icons.attach_money,
-                        'Prix',
-                        '${_selectedOrder!.totalPrice.toStringAsFixed(2)} MAD',
-                      ),
-
-                      // Buyer notes (if present)
-                      if (_selectedOrder!.buyerNotes != null) ...[
-                        const Divider(),
-                        Text(
-                          'Notes: ${_selectedOrder!.buyerNotes}',
-                          style: TextStyle(
-                            color: Colors.grey[700],
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ],
-                    ],
+                  child: OrderDetailBottomSheet(
+                    order: _selectedOrder!,
+                    onClose: () => setState(() => _selectedOrder = null),
                   ),
                 ),
               ),
@@ -499,43 +358,6 @@ class _OrderMapPageState extends State<OrderMapPage> {
                   ],
                 ),
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // HELPER WIDGETS
-  // ---------------------------------------------------------------------------
-
-  /// Build an info row with icon, label, and value
-  ///
-  /// Creates a consistent layout for order details:
-  /// [Icon] Label: Value
-  ///
-  /// Parameters:
-  /// - [icon]: Icon to display before label
-  /// - [label]: Label text (e.g., "Client", "Téléphone")
-  /// - [value]: Value text (e.g., "John Doe", "0612345678")
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: _kInfoRowPadding),
-      child: Row(
-        children: [
-          // Icon
-          Icon(icon, size: _kInfoIconSize, color: Colors.grey[600]),
-          const SizedBox(width: _kMajorSpacing),
-
-          // Label
-          Text('$label: ', style: TextStyle(color: Colors.grey[600])),
-
-          // Value (expanded to take remaining space)
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.w500),
             ),
           ),
         ],
