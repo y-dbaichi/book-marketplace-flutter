@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/order.dart';
-import 'order_tournee_page.dart';
+import 'order_tour_page.dart';
 
 class OrderTourSelectionPage extends StatefulWidget {
   final List<Order> confirmedOrders;
@@ -61,7 +61,7 @@ class _OrderTourSelectionPageState extends State<OrderTourSelectionPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => OrderTourneePage(orders: selectedOrders),
+        builder: (context) => OrderTourPage(orders: selectedOrders),
       ),
     );
   }

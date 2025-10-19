@@ -1,240 +1,294 @@
 // ==============================================================================
-// ROUTE SERVICE
+// ROUTE SERVICE - WHAT IS THIS FILE?
 // ==============================================================================
-// Service for calculating optimal delivery routes using OpenRouteService API
-// Provides route optimization, distance calculations, and turn-by-turn directions
 //
-// Features:
-// - Real routing via OpenRouteService API
-// - Route optimization using nearest-neighbor algorithm
-// - Mock data fallback for offline/error scenarios
-// - Distance and duration calculations
-// - Support for multiple waypoints (2+ points)
+// This file helps sellers plan the best delivery route for their books.
 //
-// Algorithm:
-// - Nearest Neighbor: O(n²) greedy algorithm for route ordering
-// - Haversine Formula: For accurate geographic distance calculations
+// REAL-WORLD EXAMPLE:
+// Imagine you're a seller with 5 book orders to deliver today:
+// - Order 1: Customer at location A
+// - Order 2: Customer at location B
+// - Order 3: Customer at location C
+// - Order 4: Customer at location D
+// - Order 5: Customer at location E
 //
-// API Provider:
-// - OpenRouteService (https://openrouteservice.org/)
-// - Free tier: 2,000 requests/day
-// - Rate limit: 40 requests/minute
+// PROBLEM: What order should you visit them to save time and gas?
+// SOLUTION: This service figures out the best order automatically!
 //
-// Note: For production, move API key to environment variables
+// HOW IT WORKS:
+// 1. Gets your current location (seller)
+// 2. Finds which customer is closest → go there first
+// 3. From that customer, finds the next closest → go there second
+// 4. Repeats until all customers are visited
+// 5. Gives you turn-by-turn directions for the whole route
+//
+// WHY WE NEED OPENROUTESERVICE API:
+// - Calculates real road distances (not straight lines through buildings!)
+// - Gives turn-by-turn directions like Google Maps
+// - Free for up to 2,000 routes per day
+//
 // ==============================================================================
 
-import 'dart:convert';
-import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
-import 'package:latlong2/latlong.dart';
+import 'dart:convert'; // For JSON encoding/decoding
+import 'package:flutter/foundation.dart'; // For debugPrint()
+import 'package:http/http.dart' as http; // For making API calls
+import 'package:latlong2/latlong.dart'; // For GPS coordinates (latitude/longitude)
 import '../utils/constants.dart';
 
 // ==============================================================================
-// CONSTANTS
+// CONFIGURATION VALUES
+// ==============================================================================
+// These are settings that control how the route service behaves
+
+/// How long to wait for API response before timeout (30 seconds)
+/// WHY: Prevents app from hanging if internet is slow or API is down
+const Duration _httpTimeoutDuration = Duration(seconds: 30);
+
+/// Average urban driving speed (60 km/h)
+/// WHY: Used to estimate delivery time when actual duration unavailable
+/// EXAMPLE: 30km route → estimated time = 30 / 60 = 0.5 hours (30 minutes)
+const double _averageSpeedKmh = 60.0;
+
+/// Conversion factor: meters to seconds at average speed
+/// WHY: Quickly estimate time from distance
+/// FORMULA: seconds = meters * 0.06 (based on 60 km/h)
+/// EXAMPLE: 1000 meters * 0.06 = 60 seconds = 1 minute
+const double _metersToSecondsFactor = 0.06;
+
+/// Curve intensity for fallback route visualization (offline mode)
+/// WHY: Adds realistic bends to make routes look like real roads
+/// SMALL VALUE: Routes look more natural on map
+const double _mockRouteCurveFactor = 0.001;
+
+/// Number of curve points between waypoints (fallback routes)
+/// WHY: More points = smoother, more realistic-looking route curves
+/// VALUE: 3 points creates nice S-curves between delivery stops
+const int _curvePointsPerSegment = 3;
+
+// ==============================================================================
+// MAIN SERVICE CLASS
 // ==============================================================================
 
-/// HTTP request timeout duration
-const Duration _kHttpTimeout = Duration(seconds: 30);
-
-/// Average driving speed for duration estimates (km/h)
-/// Used when API doesn't provide duration or in mock mode
-const double _kAverageSpeedKmh = 60.0;
-
-/// Duration calculation factor (hours per meter)
-/// Formula: duration = distance * factor
-/// Example: 1000m * 0.06 = 60 seconds (at 60 km/h)
-const double _kDurationFactor = 0.06;
-
-/// Route curve simulation factor for mock routes
-/// Creates realistic-looking curved paths between waypoints
-const double _kRouteCurveFactor = 0.001;
-
-/// Number of intermediate points between waypoints in mock routes
-/// Higher number = smoother route visualization
-const int _kMockIntermediatePoints = 3;
-
-// ==============================================================================
-// ROUTE SERVICE CLASS
-// ==============================================================================
-
-/// Service for route calculation and optimization
+/// RouteService - THE BRAIN OF ROUTE PLANNING
 ///
-/// Implements the Singleton pattern to ensure consistent state and
-/// efficient resource usage. Integrates with OpenRouteService API
-/// for real-world routing and provides offline fallback capabilities.
+/// SINGLETON PATTERN EXPLANATION:
+/// Instead of creating new RouteService() everywhere in your app,
+/// we create ONE instance that everyone shares.
 ///
-/// Capabilities:
-/// - Calculate driving routes between multiple waypoints
-/// - Optimize delivery order to minimize distance
-/// - Provide turn-by-turn navigation instructions
-/// - Calculate total distance and estimated duration
-/// - Generate GeoJSON routes for map visualization
+/// WHY USE SINGLETON?
+/// - Save memory (only one copy exists)
+/// - Consistent state (everyone sees the same data)
+/// - Easier to debug (only one place to look)
 ///
-/// Usage:
+/// HOW TO USE:
 /// ```dart
+/// // Anywhere in your app, just do this:
 /// final routeService = RouteService();
 ///
-/// // Get route for delivery points
-/// final route = await routeService.getRoute([
-///   LatLng(33.5731, -7.5898), // Seller location
-///   LatLng(33.5890, -7.6030), // Buyer 1
-///   LatLng(33.5650, -7.5750), // Buyer 2
-/// ]);
-///
-/// // Optimize order of delivery points
-/// final optimized = routeService.optimizeRoute(
-///   sellerLocation,
-///   deliveryPoints,
+/// // Example 1: Optimize delivery order
+/// final optimizedRoute = routeService.optimizeRoute(
+///   myShopLocation,      // Where I am
+///   customerLocations,   // Where customers are
 /// );
+/// // Result: List of locations in best order to visit
+///
+/// // Example 2: Get turn-by-turn directions
+/// final directions = await routeService.getRoute([
+///   myShopLocation,
+///   customer1Location,
+///   customer2Location,
+/// ]);
+/// // Result: "Turn right on Main St, go 2km, turn left..."
 /// ```
 class RouteService {
-  // ===========================================================================
-  // SINGLETON PATTERN
-  // ===========================================================================
+  // ==========================================================================
+  // SINGLETON PATTERN IMPLEMENTATION
+  // ==========================================================================
 
-  /// Private static instance for singleton pattern
+  // This is the ONE instance of RouteService that exists
+  // The word 'static' means it belongs to the CLASS itself, not to objects
   static final RouteService _instance = RouteService._internal();
 
-  /// Private constructor for singleton pattern
+  // Private constructor (the underscore _ makes it private)
+  // WHY: Prevents anyone from creating new RouteService() instances
+  // Only WE can create it using _internal()
   RouteService._internal();
 
-  /// Factory constructor returns the singleton instance
+  // Factory constructor - the "public door" to get the instance
+  // WHY: When someone calls RouteService(), they get the existing _instance
+  // NOT a new object!
   factory RouteService() => _instance;
 
-  // ===========================================================================
-  // CONFIGURATION
-  // ===========================================================================
+  // ==========================================================================
+  // API SETTINGS
+  // ==========================================================================
 
-  /// OpenRouteService API base URL
+  /// OpenRouteService API web address
+  /// WHAT IT IS: Like Google Maps, but free and open-source
   static const String _baseUrl = 'https://api.openrouteservice.org/v2';
 
-  /// OpenRouteService API key
+  /// API Key - YOUR PASSWORD to use OpenRouteService
   ///
-  /// SECURITY WARNING: In production, move this to:
-  /// 1. Environment variables (recommended)
-  /// 2. Secure cloud config (Firebase Remote Config, AWS Secrets Manager)
-  /// 3. Backend proxy (most secure - hide API key completely)
+  /// WHAT IS AN API KEY?
+  /// It's like a password that proves you're allowed to use the service.
+  /// This one gives you 2,000 free routes per day.
   ///
-  /// Current key is for development/demo purposes only
-  /// Get your own free key at: https://openrouteservice.org/dev/#/signup
-  static const String _apiKey = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjBmYmNiMTA0ZjlhODQ4YjZiNWVmNWJjM2FiODZmZTU0IiwiaCI6Im11cm11cjY0In0=';
+  /// ⚠️ SECURITY WARNING:
+  /// In a real production app, DON'T put the key here!
+  /// Instead, put it in:
+  /// - Environment variables (files not uploaded to GitHub)
+  /// - Your backend server (so users can't see it)
+  /// - Firebase Remote Config (Google's secure storage)
+  ///
+  /// HOW TO GET YOUR OWN KEY (FREE):
+  /// 1. Go to https://openrouteservice.org/dev/#/signup
+  /// 2. Create free account
+  /// 3. Copy your API key
+  /// 4. Replace this key with yours
+  static const String _apiKey =
+      'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjBmYmNiMTA0ZjlhODQ4YjZiNWVmNWJjM2FiODZmZTU0IiwiaCI6Im11cm11cjY0In0=';
 
-  /// Whether to use mock data instead of real API
-  /// Set to true for offline testing or if no API key available
-  static const bool _useMockData = false; // Set to true if you want to use mock data
+  /// Should we use fake data instead of real API?
+  ///
+  /// SET TO TRUE IF:
+  /// - Testing without internet
+  /// - You don't have an API key yet
+  /// - Want to save API calls during development
+  ///
+  /// SET TO FALSE IF:
+  /// - Want real turn-by-turn directions
+  /// - Need accurate distances
+  /// - App is ready for real users
+  static const bool _useMockData = false;
 
-  // ===========================================================================
-  // ROUTE CALCULATION
-  // ===========================================================================
+  // ==========================================================================
+  // MAIN PUBLIC METHOD - GET ROUTE
+  // ==========================================================================
 
-  /// Calculate route through multiple waypoints
+  /// Get driving directions between multiple delivery points
   ///
-  /// Calls OpenRouteService API to get optimal driving route between points.
-  /// Falls back to mock data if API is unavailable or returns an error.
+  /// WHAT THIS DOES:
+  /// Takes a list of GPS locations and returns turn-by-turn directions
+  /// connecting them in order.
   ///
-  /// Parameters:
-  /// - [waypoints]: List of geographic coordinates to route through (min 2 points)
+  /// INPUT: List of coordinates (minimum 2)
+  /// ```dart
+  /// [
+  ///   LatLng(33.5731, -7.5898),  // Shop
+  ///   LatLng(33.5890, -7.6030),  // Customer 1
+  ///   LatLng(33.5650, -7.5750),  // Customer 2
+  /// ]
+  /// ```
   ///
-  /// Returns:
-  /// - GeoJSON FeatureCollection with route geometry and metadata
-  /// - null if waypoints list is invalid
-  ///
-  /// Response format:
+  /// OUTPUT: Route information including:
   /// ```dart
   /// {
   ///   'type': 'FeatureCollection',
   ///   'features': [{
   ///     'geometry': {
-  ///       'type': 'LineString',
-  ///       'coordinates': [[lng, lat], ...] // Route path
+  ///       'coordinates': [[lng, lat], [lng, lat], ...]  // Path to draw on map
   ///     },
   ///     'properties': {
   ///       'summary': {
-  ///         'distance': 15420.5, // meters
-  ///         'duration': 1234.5,  // seconds
+  ///         'distance': 15420.5,  // Total distance in meters
+  ///         'duration': 1234.5,   // Time in seconds
   ///       },
-  ///       'segments': [...] // Turn-by-turn instructions
+  ///       'segments': [...]  // Turn-by-turn: "Turn right", "Go straight"...
   ///     }
   ///   }]
   /// }
   /// ```
+  ///
+  /// RETURNS NULL IF:
+  /// - Less than 2 points provided (can't make route with 1 point!)
+  /// - Coordinates are invalid (latitude > 90 or < -90, etc.)
   Future<Map<String, dynamic>?> getRoute(List<LatLng> waypoints) async {
-    // Validate input
+    // STEP 1: Check if input is valid
+    // WHY: Prevent crashes from bad data
     if (!_validateWaypoints(waypoints)) {
       debugPrint('❌ Invalid waypoints: Need at least 2 valid points');
-      return null;
+      return null; // Stop here if data is bad
     }
 
-    // Use mock data if configured
+    // STEP 2: If using fake data mode, skip API and use fallback
     if (_useMockData) {
-      debugPrint('🔄 Using mock routing data (API disabled or no key)');
-      return _getMockRoute(waypoints);
+      debugPrint('🔄 Using fallback routing data (API disabled)');
+      return _generateFallbackRoute(waypoints);
     }
 
+    // STEP 3: Try to get real route from OpenRouteService API
     try {
       debugPrint('🌐 Requesting route from OpenRouteService (${waypoints.length} waypoints)...');
 
-      // Choose appropriate API endpoint based on waypoint count
+      // Choose which API method based on number of points
       if (waypoints.length == 2) {
-        // Simple 2-point route: Use GET request (simpler, faster)
-        return await _getSimpleRoute(waypoints[0], waypoints[1]);
+        // Just 2 points? Use simpler GET request (faster)
+        return await _fetchTwoPointRoute(waypoints[0], waypoints[1]);
       } else {
-        // Multi-waypoint route: Use POST request with full options
-        return await _getMultiWaypointRoute(waypoints);
+        // 3+ points? Use advanced POST request (more features)
+        return await _fetchMultiWaypointRoute(waypoints);
       }
     } catch (error, stackTrace) {
+      // STEP 4: If API fails (no internet, server down, etc.)
+      // Don't crash! Instead, use fallback data so app still works
       debugPrint('❌ Route service error: $error');
       debugPrint('Stack trace: $stackTrace');
-      debugPrint('🔄 Falling back to mock route data');
+      debugPrint('🔄 Falling back to generated route data');
 
-      // Graceful degradation: Return mock route on error
-      return _getMockRoute(waypoints);
+      return _generateFallbackRoute(waypoints);
     }
   }
 
-  // ===========================================================================
-  // API INTEGRATION - SIMPLE ROUTE (2 POINTS)
-  // ===========================================================================
+  // ==========================================================================
+  // PRIVATE METHOD - TWO-POINT ROUTE (START → END)
+  // ==========================================================================
 
-  /// Get route between two points using GET request
+  /// Fetch route between exactly 2 points using simple GET request
   ///
-  /// Simpler API call for basic point-to-point routing.
-  /// Used when only start and end locations are provided.
+  /// WHY THIS EXISTS:
+  /// For just point A → point B, we can use a simpler, faster API call.
+  /// Like asking for directions vs planning a whole road trip.
   ///
-  /// Parameters:
-  /// - [start]: Starting location coordinates
-  /// - [end]: Destination location coordinates
+  /// WHEN IT'S USED:
+  /// Only when waypoints.length == 2 (start and end only)
   ///
-  /// Returns:
-  /// - GeoJSON route data from OpenRouteService
-  /// - null on error
-  Future<Map<String, dynamic>?> _getSimpleRoute(
+  /// HOW IT WORKS:
+  /// 1. Build URL with start and end coordinates
+  /// 2. Send HTTP GET request to API
+  /// 3. Wait maximum 30 seconds for response
+  /// 4. If successful (status 200), return route data
+  /// 5. If failed, return null
+  Future<Map<String, dynamic>?> _fetchTwoPointRoute(
     LatLng start,
     LatLng end,
   ) async {
     try {
-      // Construct GET request URL with coordinates
-      // Format: longitude,latitude (GeoJSON standard)
+      // Build the URL
+      // EXAMPLE: https://api.openrouteservice.org/v2/directions/driving-car
+      //          ?api_key=ABC123&start=-7.5898,33.5731&end=-7.6030,33.5890
+      //
+      // NOTE: Coordinates are in "longitude,latitude" order (GeoJSON standard)
+      // This is BACKWARDS from how we usually say "latitude, longitude"!
       final url = '$_baseUrl/directions/driving-car'
           '?api_key=$_apiKey'
           '&start=${start.longitude},${start.latitude}'
           '&end=${end.longitude},${end.latitude}';
 
-      debugPrint('📡 GET Request to OpenRouteService');
+      debugPrint('📡 Sending GET request to OpenRouteService...');
 
-      // Make HTTP request with timeout
-      final response = await http
-          .get(Uri.parse(url))
-          .timeout(_kHttpTimeout);
+      // Send the request and wait max 30 seconds
+      final response = await http.get(Uri.parse(url)).timeout(_httpTimeoutDuration);
 
       debugPrint('📡 Response status: ${response.statusCode}');
 
+      // Check if request succeeded
       if (response.statusCode == 200) {
+        // Success! Convert JSON text to Dart map
         final data = jsonDecode(response.body) as Map<String, dynamic>;
-        debugPrint('✅ Route data received (GET)');
+        debugPrint('✅ Route data received successfully (GET)');
         return data;
       } else {
-        // Log API error for debugging
+        // Failed! Log error for debugging
         debugPrint('❌ API Error ${response.statusCode}: ${response.body}');
         return null;
       }
@@ -245,60 +299,75 @@ class RouteService {
     }
   }
 
-  // ===========================================================================
-  // API INTEGRATION - MULTI-WAYPOINT ROUTE
-  // ===========================================================================
+  // ==========================================================================
+  // PRIVATE METHOD - MULTI-WAYPOINT ROUTE (3+ POINTS)
+  // ==========================================================================
 
-  /// Get route through multiple waypoints using POST request
+  /// Fetch route through 3 or more points using advanced POST request
   ///
-  /// Advanced routing with support for multiple delivery points.
-  /// Provides detailed turn-by-turn instructions and route segments.
+  /// WHY THIS EXISTS:
+  /// For complex routes with multiple stops, we need:
+  /// - Turn-by-turn instructions at each stop
+  /// - Distance and time for each segment
+  /// - Option to optimize route order (future feature)
   ///
-  /// Parameters:
-  /// - [waypoints]: List of locations to route through in order
+  /// DIFFERENCE FROM _fetchTwoPointRoute:
+  /// - Uses POST instead of GET (can send more data)
+  /// - Returns more detailed information
+  /// - Supports route customization (fastest vs shortest)
   ///
-  /// Returns:
-  /// - GeoJSON route data from OpenRouteService
-  /// - null on error
-  Future<Map<String, dynamic>?> _getMultiWaypointRoute(
+  /// HOW IT WORKS:
+  /// 1. Convert waypoints to API format: [[lng, lat], [lng, lat], ...]
+  /// 2. Send POST request with JSON body containing coordinates
+  /// 3. Request turn-by-turn instructions and route geometry
+  /// 4. Wait for response (max 30 seconds)
+  /// 5. Return route data or null if failed
+  Future<Map<String, dynamic>?> _fetchMultiWaypointRoute(
     List<LatLng> waypoints,
   ) async {
     try {
-      // Convert waypoints to GeoJSON coordinate format
-      // Format: [longitude, latitude] (reversed from typical lat/lng)
+      // Convert from our format to API format
+      // OUR FORMAT: [LatLng(lat, lng), LatLng(lat, lng), ...]
+      // API FORMAT: [[lng, lat], [lng, lat], ...]
+      //
+      // NOTICE: Longitude comes FIRST in API format (GeoJSON standard)
       final coordinates = waypoints
           .map((point) => [point.longitude, point.latitude])
           .toList();
 
       debugPrint('📍 Routing through ${coordinates.length} waypoints');
 
-      // Make POST request with route configuration
+      // Send POST request with configuration
       final response = await http
           .post(
             Uri.parse('$_baseUrl/directions/driving-car/geojson'),
             headers: {
-              'Authorization': _apiKey,
-              'Content-Type': 'application/json',
-              'Accept': 'application/json, application/geo+json',
+              'Authorization': _apiKey, // Prove we're allowed to use API
+              'Content-Type': 'application/json', // Tell server we're sending JSON
+              'Accept': 'application/json, application/geo+json', // We accept GeoJSON response
             },
             body: jsonEncode({
-              'coordinates': coordinates,
-              'instructions': true, // Include turn-by-turn directions
-              'geometry': true, // Include route path geometry
-              'preference': 'fastest', // Optimize for fastest route
-              'units': 'km', // Distance units
+              'coordinates': coordinates, // The waypoints to route through
+
+              // Request options (what we want in the response):
+              'instructions': true, // YES: Give me turn-by-turn ("Turn left on Main St...")
+              'geometry': true, // YES: Give me route path for drawing on map
+              'preference': 'fastest', // Optimize for TIME (not distance)
+              'units': 'km', // Use kilometers (you can change to 'mi' for miles)
             }),
           )
-          .timeout(_kHttpTimeout);
+          .timeout(_httpTimeoutDuration); // Give up after 30 seconds
 
       debugPrint('📡 Response status: ${response.statusCode}');
 
+      // Check if request succeeded
       if (response.statusCode == 200) {
+        // Success! Parse JSON response
         final data = jsonDecode(response.body) as Map<String, dynamic>;
-        debugPrint('✅ Route data received (POST)');
+        debugPrint('✅ Route data received successfully (POST)');
         return data;
       } else {
-        // Log API error for debugging
+        // Failed! Log error
         debugPrint('❌ API Error ${response.statusCode}: ${response.body}');
         return null;
       }
@@ -309,55 +378,73 @@ class RouteService {
     }
   }
 
-  // ===========================================================================
-  // MOCK DATA GENERATION (FALLBACK)
-  // ===========================================================================
+  // ==========================================================================
+  // PRIVATE METHOD - GENERATE FALLBACK ROUTE (OFFLINE MODE)
+  // ==========================================================================
 
-  /// Generate mock route for offline/demo mode
+  /// Generate fallback route data when API is unavailable
   ///
-  /// Creates realistic-looking route with curved paths between waypoints.
-  /// Used as fallback when API is unavailable or for offline testing.
+  /// WHY THIS EXISTS:
+  /// If internet is down or API fails, app shouldn't crash!
+  /// Instead, we create realistic-looking fallback data so user can still
+  /// see something on the map.
   ///
-  /// Features:
-  /// - Curved intermediate points for visual realism
-  /// - Calculated distance using Haversine formula
-  /// - Estimated duration based on average speed
-  /// - Mock turn-by-turn instructions in French
+  /// WHAT IT CREATES:
+  /// - Curved line connecting all waypoints (looks like a road)
+  /// - Calculated distance using math (Haversine formula)
+  /// - Estimated time based on average speed
+  /// - Generic turn-by-turn instructions in French
   ///
-  /// Parameters:
-  /// - [waypoints]: Delivery locations to connect
+  /// HOW THE CURVE WORKS:
+  /// Instead of straight line A → B, we add extra points in between:
+  /// A → (curve point 1) → (curve point 2) → (curve point 3) → B
+  /// This makes it look more like real roads which curve and bend.
   ///
-  /// Returns:
-  /// - GeoJSON FeatureCollection matching OpenRouteService format
-  Map<String, dynamic> _getMockRoute(List<LatLng> waypoints) {
-    if (waypoints.isEmpty) return _getEmptyRoute();
+  /// IMPORTANT: This is NOT as accurate as real API!
+  /// - Doesn't know about real roads
+  /// - Doesn't know about traffic
+  /// - Just draws curves between points
+  /// - But it's better than nothing!
+  Map<String, dynamic> _generateFallbackRoute(List<LatLng> waypoints) {
+    // Safety check (should never happen because caller validates)
+    assert(
+      waypoints.length >= 2,
+      'Waypoints must be validated before calling _generateFallbackRoute',
+    );
 
-    // Generate route coordinates with curved paths
+    // Storage for all route coordinates (including curve points)
     final coordinates = <List<double>>[];
 
+    // STEP 1: Create curved path through all waypoints
     for (int i = 0; i < waypoints.length; i++) {
-      // Add waypoint coordinate
+      // Add the actual waypoint
       coordinates.add([
         waypoints[i].longitude,
         waypoints[i].latitude,
       ]);
 
-      // Add intermediate curved points between waypoints
+      // If not the last point, add curve to next waypoint
       if (i < waypoints.length - 1) {
         final current = waypoints[i];
         final next = waypoints[i + 1];
 
-        // Create smooth curve between points
-        for (int j = 1; j <= _kMockIntermediatePoints; j++) {
-          final ratio = j / (_kMockIntermediatePoints + 1);
+        // Add 3 intermediate points between current and next
+        // This creates smooth curve instead of sharp corner
+        for (int j = 1; j <= _curvePointsPerSegment; j++) {
+          // Calculate position along the line (0.25, 0.5, 0.75)
+          final ratio = j / (_curvePointsPerSegment + 1);
 
-          // Linear interpolation
+          // Linear interpolation: point between current and next
+          // EXAMPLE: If current is (0,0) and next is (10,10)
+          //          and ratio is 0.5, point is (5,5) - the midpoint
           var lat = current.latitude + (next.latitude - current.latitude) * ratio;
           var lng = current.longitude + (next.longitude - current.longitude) * ratio;
 
-          // Add curve effect (simulate road curvature)
-          // Peak curve in middle, smaller at edges
-          final curveFactor = _kRouteCurveFactor * (j == 2 ? 1.0 : 0.5);
+          // Add curve effect to make it look like real road
+          // Middle point gets more curve, edge points get less
+          final curveFactor = _mockRouteCurveFactor * (j == 2 ? 1.0 : 0.5);
+
+          // Alternate left/right to create S-curve
           lat += curveFactor * (j % 2 == 0 ? 1 : -1);
           lng += curveFactor * (j % 2 == 0 ? -1 : 1);
 
@@ -366,11 +453,12 @@ class RouteService {
       }
     }
 
-    // Calculate route metrics
+    // STEP 2: Calculate route metrics
     final distanceMeters = _calculateTotalDistance(waypoints);
-    final durationSeconds = distanceMeters * _kDurationFactor;
+    final durationSeconds = distanceMeters * _metersToSecondsFactor;
 
-    // Return GeoJSON matching OpenRouteService format
+    // STEP 3: Return in same format as real API
+    // (So rest of app doesn't know the difference!)
     return {
       'type': 'FeatureCollection',
       'features': [
@@ -378,77 +466,78 @@ class RouteService {
           'type': 'Feature',
           'properties': {
             'summary': {
-              'distance': distanceMeters,
-              'duration': durationSeconds,
+              'distance': distanceMeters, // How far (meters)
+              'duration': durationSeconds, // How long (seconds)
             },
             'segments': [
               {
                 'distance': distanceMeters,
                 'duration': durationSeconds,
-                'steps': _generateMockInstructions(waypoints),
+                'steps': _generateFallbackInstructions(waypoints), // Generic directions
               }
             ]
           },
           'geometry': {
             'type': 'LineString',
-            'coordinates': coordinates,
+            'coordinates': coordinates, // The curved path
           }
         }
       ]
     };
   }
 
-  /// Return empty GeoJSON collection
-  ///
-  /// Used when no waypoints are provided
-  Map<String, dynamic> _getEmptyRoute() {
-    return {
-      'type': 'FeatureCollection',
-      'features': <Map<String, dynamic>>[],
-    };
-  }
+  // ==========================================================================
+  // PRIVATE METHOD - GENERATE FALLBACK TURN-BY-TURN INSTRUCTIONS
+  // ==========================================================================
 
-  /// Generate mock turn-by-turn instructions in French
+  /// Create generic navigation instructions for each waypoint
   ///
-  /// Creates realistic navigation instructions for each waypoint.
-  /// Used in mock routes to simulate API response structure.
+  /// WHY THIS EXISTS:
+  /// When using fallback route (offline mode), we still want to show
+  /// something in the turn-by-turn list. These are generic instructions
+  /// like "Continue to point 2", "Arrive at destination".
   ///
-  /// Parameters:
-  /// - [waypoints]: Route waypoints
+  /// NOT REALISTIC, BUT BETTER THAN NOTHING!
   ///
-  /// Returns:
-  /// - List of instruction steps with distance and duration
-  List<Map<String, dynamic>> _generateMockInstructions(List<LatLng> waypoints) {
+  /// WHAT IT CREATES:
+  /// - First point: "Départ du point de départ" (Start from starting point)
+  /// - Middle points: "Continuer vers le point X" (Continue to point X)
+  /// - Last point: "Arrivée à destination" (Arrive at destination)
+  List<Map<String, dynamic>> _generateFallbackInstructions(List<LatLng> waypoints) {
     final instructions = <Map<String, dynamic>>[];
 
     for (int i = 0; i < waypoints.length; i++) {
       if (i == 0) {
-        // Starting point
+        // STARTING POINT
         instructions.add({
-          'instruction': 'Départ du point de départ',
-          'distance': 0.0,
-          'duration': 0.0,
-          'type': 10, // Instruction type: Depart
+          'instruction': 'Départ du point de départ', // "Start from starting point"
+          'distance': 0.0, // Haven't moved yet
+          'duration': 0.0, // No time elapsed
+          'type': 10, // Type 10 = Departure
         });
       } else if (i == waypoints.length - 1) {
-        // Destination
+        // FINAL DESTINATION
         instructions.add({
-          'instruction': 'Arrivée à destination',
-          'distance': 0.0,
+          'instruction': 'Arrivée à destination', // "Arrive at destination"
+          'distance': 0.0, // Distance to destination is 0 (you're there!)
           'duration': 0.0,
-          'type': 10, // Instruction type: Arrive
+          'type': 10, // Type 10 = Arrival
         });
       } else {
-        // Intermediate waypoint
-        final segmentDistance = _calculateDistance(
+        // MIDDLE WAYPOINT
+        // Calculate distance from previous point to this point
+        final distance = const Distance();
+        final segmentDistance = distance.as(
+          LengthUnit.Meter,
           waypoints[i - 1],
           waypoints[i],
         );
+
         instructions.add({
-          'instruction': 'Continuer vers le point ${i + 1}',
-          'distance': segmentDistance,
-          'duration': segmentDistance * _kDurationFactor,
-          'type': 0, // Instruction type: Continue straight
+          'instruction': 'Continuer vers le point ${i + 1}', // "Continue to point X"
+          'distance': segmentDistance, // How far to this waypoint
+          'duration': segmentDistance * _metersToSecondsFactor, // Estimated time
+          'type': 0, // Type 0 = Continue straight
         });
       }
     }
@@ -456,114 +545,130 @@ class RouteService {
     return instructions;
   }
 
-  // ===========================================================================
-  // ROUTE OPTIMIZATION
-  // ===========================================================================
+  // ==========================================================================
+  // PUBLIC METHOD - OPTIMIZE ROUTE ORDER
+  // ==========================================================================
 
-  /// Optimize route order using nearest-neighbor algorithm
+  /// Find best order to visit delivery points (Nearest-Neighbor Algorithm)
   ///
-  /// Greedy algorithm that always picks the closest unvisited point.
-  /// Time complexity: O(n²) where n is number of points.
+  /// THE TRAVELING SALESMAN PROBLEM (TSP):
+  /// Given a list of cities and distances between them, what's the shortest
+  /// route that visits each city exactly once and returns to start?
   ///
-  /// Algorithm:
-  /// 1. Start at seller location
-  /// 2. Find nearest unvisited delivery point
-  /// 3. Move to that point
-  /// 4. Repeat until all points visited
+  /// THIS IS A FAMOUS HARD PROBLEM IN COMPUTER SCIENCE!
+  /// No known "perfect" solution for large numbers of points.
   ///
-  /// Note: This is a heuristic approximation, not optimal solution.
-  /// For optimal TSP solution, consider:
-  /// - 2-opt improvement
-  /// - Simulated annealing
-  /// - Genetic algorithms
+  /// OUR SOLUTION: Greedy Nearest-Neighbor Algorithm
   ///
-  /// Trade-off: Simple and fast, but may not find absolute shortest route.
+  /// HOW IT WORKS:
+  /// 1. Start at your shop
+  /// 2. Look at all unvisited customers → find the CLOSEST one
+  /// 3. Go to that customer
+  /// 4. Look at remaining customers → find the CLOSEST to current location
+  /// 5. Repeat until all customers visited
   ///
-  /// Parameters:
-  /// - [startPoint]: Seller location (origin)
-  /// - [points]: List of delivery locations to visit
-  ///
-  /// Returns:
-  /// - Ordered list of waypoints minimizing total distance
-  ///
-  /// Example:
-  /// ```dart
-  /// final optimized = routeService.optimizeRoute(
-  ///   LatLng(33.5731, -7.5898), // Seller
-  ///   [
-  ///     LatLng(33.5890, -7.6030), // Delivery 1
-  ///     LatLng(33.5650, -7.5750), // Delivery 2
-  ///     LatLng(33.5800, -7.5900), // Delivery 3
-  ///   ],
-  /// );
-  /// // Returns: [seller, nearest, next_nearest, farthest]
+  /// VISUAL EXAMPLE:
   /// ```
+  /// You are here: 🏪 (Shop)
+  /// Customers: A, B, C, D
+  ///
+  /// Distances from shop:
+  /// 🏪 → A: 5km
+  /// 🏪 → B: 2km (CLOSEST!)
+  /// 🏪 → C: 8km
+  /// 🏪 → D: 3km
+  ///
+  /// Step 1: Go to B (closest to shop)
+  /// Step 2: From B, find closest unvisited → D (1km away)
+  /// Step 3: From D, find closest unvisited → A (2km away)
+  /// Step 4: From A, only C left → go there
+  ///
+  /// Final route: 🏪 → B → D → A → C
+  /// ```
+  ///
+  /// IS THIS PERFECT?
+  /// No! Sometimes there's a better route we miss.
+  /// But it's FAST and GOOD ENOUGH for 5-20 deliveries.
+  ///
+  /// COMPLEXITY: O(n²) - If you have 10 points, does ~100 calculations
+  ///
+  /// BETTER ALGORITHMS EXIST:
+  /// - 2-opt improvement (fixes obvious mistakes)
+  /// - Simulated annealing (tries random changes)
+  /// - Genetic algorithms (evolution-inspired)
+  /// But they're more complex and slower. This is good enough for us!
   List<LatLng> optimizeRoute(LatLng startPoint, List<LatLng> points) {
-    // Edge case: No delivery points
+    // Edge case: No deliveries? Just return starting point
     if (points.isEmpty) {
       debugPrint('⚠️ No points to optimize, returning start point only');
       return [startPoint];
     }
 
-    // Initialize route with starting point
-    final optimizedRoute = <LatLng>[startPoint];
-    final remainingPoints = List<LatLng>.from(points);
-    var currentPoint = startPoint;
+    // SETUP
+    final optimizedRoute = <LatLng>[startPoint]; // Start here
+    final remainingPoints = List<LatLng>.from(points); // Copy list so we can modify it
+    var currentPoint = startPoint; // Where we are now
 
-    final distance = const Distance();
+    final distance = const Distance(); // Tool to calculate distances
 
     debugPrint('🔄 Optimizing route for ${points.length} delivery points...');
 
-    // Greedy nearest-neighbor algorithm
+    // MAIN LOOP: Keep going until we've visited everyone
     while (remainingPoints.isNotEmpty) {
-      // Find nearest unvisited point
-      var nearestPoint = remainingPoints.first;
+      // Find the closest unvisited customer
+      var nearestPoint = remainingPoints.first; // Start with first one
       var nearestDistance = distance.as(
         LengthUnit.Meter,
         currentPoint,
         nearestPoint,
       );
 
-      // Check all remaining points for closer option
+      // Check if any other customer is closer
       for (final point in remainingPoints) {
         final dist = distance.as(LengthUnit.Meter, currentPoint, point);
         if (dist < nearestDistance) {
+          // Found someone closer!
           nearestDistance = dist;
           nearestPoint = point;
         }
       }
 
-      // Add nearest point to route
-      optimizedRoute.add(nearestPoint);
-      remainingPoints.remove(nearestPoint);
-      currentPoint = nearestPoint;
+      // Visit the nearest customer
+      optimizedRoute.add(nearestPoint); // Add to route
+      remainingPoints.remove(nearestPoint); // Mark as visited
+      currentPoint = nearestPoint; // We're now at this location
+
+      // Loop continues with remaining customers...
     }
 
     debugPrint('✅ Route optimized: ${optimizedRoute.length} points total');
     return optimizedRoute;
   }
 
-  // ===========================================================================
-  // DISTANCE CALCULATIONS
-  // ===========================================================================
+  // ==========================================================================
+  // PRIVATE METHOD - CALCULATE TOTAL DISTANCE
+  // ==========================================================================
 
-  /// Calculate total distance for route through all waypoints
+  /// Add up distances between all consecutive waypoints
   ///
-  /// Uses Haversine formula via latlong2 package for accurate
-  /// geographic distance calculations accounting for Earth's curvature.
+  /// WHAT THIS DOES:
+  /// Given route [A, B, C, D], calculates:
+  /// Total = distance(A→B) + distance(B→C) + distance(C→D)
   ///
-  /// Parameters:
-  /// - [waypoints]: Ordered list of route points
+  /// USES HAVERSINE FORMULA:
+  /// Calculates "as the crow flies" distance on Earth's curved surface.
+  /// More accurate than simple straight line in 2D.
   ///
-  /// Returns:
-  /// - Total distance in meters
+  /// WHY NOT ROAD DISTANCE?
+  /// That requires API call. This is just for estimates.
   double _calculateTotalDistance(List<LatLng> waypoints) {
+    // Need at least 2 points to have distance
     if (waypoints.length < 2) return 0.0;
 
     double totalDistance = 0.0;
-    final distance = const Distance();
+    final distance = const Distance(); // Haversine calculator
 
-    // Sum distances between consecutive waypoints
+    // Loop through consecutive pairs: (point[0], point[1]), (point[1], point[2]), ...
     for (int i = 0; i < waypoints.length - 1; i++) {
       totalDistance += distance.as(
         LengthUnit.Meter,
@@ -575,64 +680,58 @@ class RouteService {
     return totalDistance;
   }
 
-  /// Calculate distance between two geographic points
-  ///
-  /// Uses Haversine formula for accurate great-circle distance.
-  ///
-  /// Parameters:
-  /// - [point1]: First coordinate
-  /// - [point2]: Second coordinate
-  ///
-  /// Returns:
-  /// - Distance in meters
-  double _calculateDistance(LatLng point1, LatLng point2) {
-    final distance = const Distance();
-    return distance.as(LengthUnit.Meter, point1, point2);
-  }
+  // ==========================================================================
+  // PRIVATE METHOD - VALIDATE INPUT
+  // ==========================================================================
 
-  // ===========================================================================
-  // VALIDATION
-  // ===========================================================================
-
-  /// Validate waypoints list for routing
+  /// Check if waypoints are valid before using them
   ///
-  /// Checks:
-  /// - At least 2 waypoints required
-  /// - All coordinates are valid (lat: -90 to 90, lng: -180 to 180)
+  /// WHAT CAN GO WRONG:
+  /// 1. Too few points (need at least 2 for a route!)
+  /// 2. Invalid latitude (must be between -90 and 90)
+  ///    - 0° = Equator
+  ///    - 90° = North Pole
+  ///    - -90° = South Pole
+  /// 3. Invalid longitude (must be between -180 and 180)
+  ///    - 0° = Prime Meridian (Greenwich, UK)
+  ///    - 180° = Opposite side of Earth
   ///
-  /// Parameters:
-  /// - [waypoints]: List of coordinates to validate
-  ///
-  /// Returns:
-  /// - true if valid, false otherwise
+  /// WHY VALIDATE:
+  /// - Prevent crashes from bad data
+  /// - Catch bugs early
+  /// - Give helpful error messages
   bool _validateWaypoints(List<LatLng> waypoints) {
-    // Need at least 2 points for a route
+    // CHECK 1: Need at least 2 points
+    // WHY: Can't make a route with just 1 point!
     if (waypoints.length < 2) {
       debugPrint('❌ Validation failed: Need at least 2 waypoints');
       return false;
     }
 
-    // Validate each coordinate
+    // CHECK 2: Validate each coordinate
     for (int i = 0; i < waypoints.length; i++) {
       final point = waypoints[i];
 
-      // Check latitude range: -90 to 90
+      // Check latitude is valid (-90 to 90)
       if (point.latitude < -90 || point.latitude > 90) {
         debugPrint(
           '❌ Validation failed: Invalid latitude ${point.latitude} at waypoint $i',
         );
+        debugPrint('   (Latitude must be between -90 and 90)');
         return false;
       }
 
-      // Check longitude range: -180 to 180
+      // Check longitude is valid (-180 to 180)
       if (point.longitude < -180 || point.longitude > 180) {
         debugPrint(
           '❌ Validation failed: Invalid longitude ${point.longitude} at waypoint $i',
         );
+        debugPrint('   (Longitude must be between -180 and 180)');
         return false;
       }
     }
 
+    // All checks passed!
     return true;
   }
 }

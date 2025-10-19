@@ -7,16 +7,16 @@ import '../models/order.dart';
 import '../services/route_service.dart';
 import '../services/order_service.dart';
 
-class OrderTourneePage extends StatefulWidget {
+class OrderTourPage extends StatefulWidget {
   final List<Order> orders;
 
-  const OrderTourneePage({super.key, required this.orders});
+  const OrderTourPage({super.key, required this.orders});
 
   @override
-  State<OrderTourneePage> createState() => _OrderTourneePageState();
+  State<OrderTourPage> createState() => _OrderTourPageState();
 }
 
-class _OrderTourneePageState extends State<OrderTourneePage> {
+class _OrderTourPageState extends State<OrderTourPage> {
   final MapController _mapController = MapController();
   final RouteService _routeService = RouteService();
   final OrderService _orderService = OrderService();
@@ -28,6 +28,7 @@ class _OrderTourneePageState extends State<OrderTourneePage> {
   bool _isGettingLocation = false;
   String _routeInfo = '';
   int? _selectedOrderIndex;
+  List<Map<String, dynamic>> _turnByTurnInstructions = [];
 
   @override
   void initState() {
@@ -236,6 +237,15 @@ class _OrderTourneePageState extends State<OrderTourneePage> {
           if (summary != null) {
             distance = summary['distance']?.toDouble();
             duration = summary['duration']?.toDouble();
+          }
+
+          // Extract turn-by-turn instructions
+          final segments = properties?['segments'];
+          if (segments != null && segments is List && segments.isNotEmpty) {
+            final steps = segments[0]['steps'];
+            if (steps != null && steps is List) {
+              _turnByTurnInstructions = steps.cast<Map<String, dynamic>>();
+            }
           }
         }
       }
@@ -638,7 +648,7 @@ class _OrderTourneePageState extends State<OrderTourneePage> {
     }
   }
 
-  Future<void> _openFullRouteNavigation() async {
+  void _showNavigationOptions() {
     if (_startPoint == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -649,6 +659,145 @@ class _OrderTourneePageState extends State<OrderTourneePage> {
       return;
     }
 
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Naviguer avec',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+
+            // Google Maps Option
+            InkWell(
+              onTap: () {
+                Navigator.pop(context);
+                _openGoogleMaps();
+              },
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey[300]!),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: Colors.green[50],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.map,
+                        color: Colors.green[700],
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Google Maps',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'Route complète avec tous les arrêts optimisés',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Waze Option
+            InkWell(
+              onTap: () {
+                Navigator.pop(context);
+                _openWaze();
+              },
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey[300]!),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: Colors.blue[50],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.navigation,
+                        color: Colors.blue[700],
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Waze',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'Vers destination finale • Utilise GPS actuel',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openGoogleMaps() async {
     final ordersToNavigate = _optimizedOrders.isNotEmpty ? _optimizedOrders : widget.orders;
 
     if (ordersToNavigate.isEmpty) {
@@ -688,13 +837,69 @@ class _OrderTourneePageState extends State<OrderTourneePage> {
       if (await canLaunchUrl(googleMapsUri)) {
         await launchUrl(googleMapsUri, mode: LaunchMode.externalApplication);
       } else {
-        throw Exception('Cannot launch navigation');
+        throw Exception('Cannot launch Google Maps');
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Impossible d\'ouvrir la navigation'),
+          SnackBar(
+            content: const Text('Google Maps n\'est pas installé'),
+            action: SnackBarAction(
+              label: 'Installer',
+              onPressed: () async {
+                final Uri playStoreUri = Uri.parse(
+                  'https://play.google.com/store/apps/details?id=com.google.android.apps.maps',
+                );
+                await launchUrl(playStoreUri, mode: LaunchMode.externalApplication);
+              },
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _openWaze() async {
+    final ordersToNavigate = _optimizedOrders.isNotEmpty ? _optimizedOrders : widget.orders;
+
+    if (ordersToNavigate.isEmpty) {
+      return;
+    }
+
+    // Waze doesn't support multiple waypoints in a single URL like Google Maps
+    // So we'll navigate to the final destination
+    // The driver can manually add stops if needed in Waze
+    final lastLoc = ordersToNavigate.last.buyerLocation;
+
+    if (lastLoc == null) {
+      return;
+    }
+
+    // Waze deep link format
+    final Uri wazeUri = Uri.parse(
+      'https://waze.com/ul?ll=${lastLoc.latitude},${lastLoc.longitude}&navigate=yes',
+    );
+
+    try {
+      if (await canLaunchUrl(wazeUri)) {
+        await launchUrl(wazeUri, mode: LaunchMode.externalApplication);
+      } else {
+        throw Exception('Cannot launch Waze');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Waze n\'est pas installé'),
+            action: SnackBarAction(
+              label: 'Installer',
+              onPressed: () async {
+                final Uri playStoreUri = Uri.parse(
+                  'https://play.google.com/store/apps/details?id=com.waze',
+                );
+                await launchUrl(playStoreUri, mode: LaunchMode.externalApplication);
+              },
+            ),
           ),
         );
       }
@@ -873,7 +1078,7 @@ class _OrderTourneePageState extends State<OrderTourneePage> {
                     ),
                     if (_routeInfo.isNotEmpty) ...[
                       ElevatedButton.icon(
-                        onPressed: _openFullRouteNavigation,
+                        onPressed: _showNavigationOptions,
                         icon: const Icon(Icons.navigation, size: 20),
                         label: const Text('Naviguer'),
                         style: ElevatedButton.styleFrom(
@@ -944,8 +1149,144 @@ class _OrderTourneePageState extends State<OrderTourneePage> {
               ],
             ),
           ),
+
+          // Turn-by-Turn Directions Panel
+          if (_turnByTurnInstructions.isNotEmpty)
+            Container(
+              constraints: const BoxConstraints(maxHeight: 250),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, -2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.indigo[600],
+                      border: Border(
+                        bottom: BorderSide(color: Colors.grey[300]!),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.directions, color: Colors.white, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Itinéraire détaillé (${_turnByTurnInstructions.length} étapes)',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView.separated(
+                      padding: const EdgeInsets.all(8),
+                      itemCount: _turnByTurnInstructions.length,
+                      separatorBuilder: (context, index) => Divider(
+                        height: 1,
+                        color: Colors.grey[300],
+                      ),
+                      itemBuilder: (context, index) {
+                        final step = _turnByTurnInstructions[index];
+                        final instruction = step['instruction'] ?? '';
+                        final distance = step['distance'];
+                        final type = step['type'] ?? 0;
+
+                        return ListTile(
+                          dense: true,
+                          leading: CircleAvatar(
+                            radius: 16,
+                            backgroundColor: _getInstructionColor(type),
+                            child: Icon(
+                              _getInstructionIcon(type),
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                          title: Text(
+                            instruction,
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                          trailing: distance != null && distance > 0
+                              ? Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue[50],
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    _formatDistance(distance),
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.blue[700],
+                                    ),
+                                  ),
+                                )
+                              : null,
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
+  }
+
+  IconData _getInstructionIcon(int type) {
+    // OpenRouteService instruction types
+    switch (type) {
+      case 0: return Icons.arrow_upward; // Straight
+      case 1: return Icons.turn_right; // Right
+      case 2: return Icons.turn_left; // Left
+      case 3: return Icons.turn_sharp_right; // Sharp right
+      case 4: return Icons.turn_sharp_left; // Sharp left
+      case 5: return Icons.turn_slight_right; // Slight right
+      case 6: return Icons.turn_slight_left; // Slight left
+      case 7: return Icons.arrow_upward; // Continue
+      case 10: return Icons.flag; // Arrive/Depart
+      case 11: return Icons.place; // Arrive
+      case 12: return Icons.u_turn_left; // U-turn
+      default: return Icons.navigation;
+    }
+  }
+
+  Color _getInstructionColor(int type) {
+    switch (type) {
+      case 10: return Colors.green; // Start
+      case 11: return Colors.red; // End
+      case 1:
+      case 3: return Colors.orange; // Right turns
+      case 2:
+      case 4: return Colors.blue; // Left turns
+      default: return Colors.indigo;
+    }
+  }
+
+  String _formatDistance(dynamic distance) {
+    final distanceMeters = (distance is int) ? distance.toDouble() : distance as double;
+    if (distanceMeters >= 1000) {
+      return '${(distanceMeters / 1000).toStringAsFixed(1)} km';
+    } else {
+      return '${distanceMeters.toStringAsFixed(0)} m';
+    }
   }
 }
