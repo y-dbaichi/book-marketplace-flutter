@@ -1,0 +1,35 @@
+# Flutter/Dart build artifacts
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+*.lock
+
+# Android/iOS
+android/
+ios/
+macos/
+linux/
+windows/
+web/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Documentation
+*.md
+!README.md
+
+# Other
+.git/
+.gitignore
+test/
+coverage/
+.env
