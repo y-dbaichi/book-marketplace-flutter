@@ -64,6 +64,7 @@ import '../services/order_service.dart';
 import '../helpers/route_helper.dart';
 import '../helpers/order_status_helper.dart';
 import '../widgets/orders/status_change_dialog.dart';
+import '../widgets/orders/order_detail_bottom_sheet.dart';
 import '../widgets/navigation/navigation_app_selector.dart';
 import '../utils/error_utils.dart';
 
@@ -459,194 +460,20 @@ class _OrderTourPageState extends State<OrderTourPage> {
     return markers;
   }
 
+  /// Show order details using reusable OrderDetailBottomSheet widget
+  ///
+  /// Delegates to OrderDetailBottomSheet for consistent display across app
   void _showOrderDetails(Order order, int index) {
     setState(() => _selectedOrderIndex = index);
 
-    showModalBottomSheet(
+    OrderDetailBottomSheet.showBottomSheet(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.6,
-        minChildSize: 0.4,
-        maxChildSize: 0.9,
-        expand: false,
-        builder: (context, scrollController) => Container(
-          padding: const EdgeInsets.all(20),
-          child: ListView(
-            controller: scrollController,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Text(
-                      '${index + 1}',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          order.book.title,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          'Par ${order.book.author}',
-                          style: TextStyle(color: Colors.grey[600]),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () {
-                      setState(() => _selectedOrderIndex = null);
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
-              ),
-              const Divider(height: 32),
-              _buildDetailRow(Icons.person, 'Client', order.buyerName),
-              _buildDetailRow(Icons.phone, 'Téléphone', order.buyer.phone ?? 'N/A'),
-              _buildDetailRow(
-                Icons.location_on,
-                'Adresse',
-                order.buyerLocation?.address ?? 'N/A',
-              ),
-              _buildDetailRow(Icons.shopping_bag, 'Quantité', order.quantity.toString()),
-              _buildDetailRow(
-                Icons.attach_money,
-                'Prix',
-                '${order.totalPrice.toStringAsFixed(2)} MAD',
-              ),
-              if (order.buyerNotes != null) ...[
-                const Divider(height: 24),
-                Text(
-                  'Notes du client:',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[700],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(order.buyerNotes!),
-                ),
-              ],
-              const SizedBox(height: 24),
-              // Navigation button (prominent)
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => _openNavigation(order),
-                  icon: const Icon(Icons.navigation, size: 24),
-                  label: const Text(
-                    'Démarrer la navigation',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.indigo[600],
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => _callContact(order.buyer.phone ?? ''),
-                      icon: const Icon(Icons.phone),
-                      label: const Text('Appeler'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => _showStatusChangeDialog(order),
-                      icon: const Icon(Icons.swap_horiz),
-                      label: const Text('Statut'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+      order: order,
+      stopNumber: index + 1,
+      onNavigate: () => _openNavigation(order),
+      onCall: () => _callContact(order.buyer.phone ?? ''),
+      onChangeStatus: () => _showStatusChangeDialog(order),
     ).then((_) => setState(() => _selectedOrderIndex = null));
-  }
-
-  Widget _buildDetailRow(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 20, color: Colors.grey[600]),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   Future<void> _callContact(String phoneNumber) async {

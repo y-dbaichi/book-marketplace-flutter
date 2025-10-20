@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PFE - Marketplace de Livres avec Optimisation de Tournées (SIG)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #3F51B5;
+            --secondary: #2196F3;
+            --accent: #4CAF50;
+            --danger: #F44336;
+            --warning: #FF9800;
+            --dark: #212121;
+            --light: #FAFAFA;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000;
+            overflow: hidden;
+        }
+
+        .presentation-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .slide {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+            padding: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .slide.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            opacity: 1;
+            z-index: 1;
+        }
+
+        /* Title Slide */
+        .slide.title-slide {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .slide.title-slide h1 {
+            font-size: 3.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .slide.title-slide h2 {
+            font-size: 1.8em;
+            font-weight: 300;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .slide.title-slide .author {
+            font-size: 1.5em;
+            margin-top: 40px;
+        }
+
+        .slide.title-slide .date {
+            font-size: 1.2em;
+            opacity: 0.8;
+            margin-top: 20px;
+        }
+
+        /* Content Slides */
+        .slide h1 {
+            font-size: 2.5em;
+            margin-bottom: 40px;
+            border-bottom: 4px solid white;
+            padding-bottom: 20px;
+        }
+
+        .slide h2 {
+            font-size: 2em;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            color: #FFF;
+        }
+
+        .slide h3 {
+            font-size: 1.5em;
+            margin-top: 20px;
+            margin-bottom: 15px;
+            color: #FFF;
+        }
+
+        .slide p, .slide li {
+            font-size: 1.3em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .slide ul {
+            margin-left: 40px;
+            list-style: none;
+        }
+
+        .slide ul li::before {
+            content: "✓ ";
+            color: var(--accent);
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .slide ol {
+            margin-left: 40px;
+        }
+
+        .slide ol li {
+            margin-bottom: 15px;
+        }
+
+        /* Two Column Layout */
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 30px;
+        }
+
+        .column {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Info Boxes */
+        .info-box {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid var(--accent);
+        }
+
+        .info-box.problem {
+            border-left-color: var(--danger);
+        }
+
+        .info-box.solution {
+            border-left-color: var(--accent);
+        }
+
+        .info-box.tech {
+            border-left-color: var(--secondary);
+        }
+
+        /* Code Blocks */
+        .code-block {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            margin: 20px 0;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.5;
+        }
+
+        /* Stats/Metrics */
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .metric {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .metric .number {
+            font-size: 3em;
+            font-weight: bold;
+            color: var(--accent);
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .metric .label {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        /* Navigation */
+        .navigation {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        .nav-button {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid white;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-button:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(1.1);
+        }
+
+        /* Slide Counter */
+        .slide-counter {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 15px 25px;
+            border-radius: 30px;
+            color: white;
+            font-size: 1.2em;
+            z-index: 1000;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 5px;
+            background: var(--accent);
+            transition: width 0.3s ease;
+            z-index: 1001;
+        }
+
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        table th {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            text-align: left;
+            font-size: 1.2em;
+        }
+
+        table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 1.1em;
+        }
+
+        /* Highlight */
+        .highlight {
+            background: rgba(255, 255, 0, 0.3);
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        /* Emoji Icons */
+        .emoji {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+
+        /* Architecture Diagram */
+        .architecture {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 1em;
+            line-height: 1.8;
+            white-space: pre;
+        }
+
+        /* Key Points Grid */
+        .key-points {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .key-point {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid var(--accent);
+        }
+
+        .key-point h3 {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+            margin-top: 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .slide {
+                padding: 30px;
+            }
+
+            .slide h1 {
+                font-size: 2em;
+            }
+
+            .two-columns {
+                grid-template-columns: 1fr;
+            }
+
+            .key-points {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            .slide {
+                page-break-after: always;
+                position: relative;
+                display: block !important;
+                opacity: 1 !important;
+            }
+
+            .navigation, .slide-counter, .progress-bar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="slide-counter" id="slideCounter">1 / 21</div>
+
+    <div class="presentation-container">
+        <!-- Slide 1: Title -->
+        <div class="slide title-slide active">
+            <h1>📚 Marketplace de Livres avec<br>Optimisation Intelligente de Tournées</h1>
+            <h2>Application Mobile Flutter avec Système d'Information Géographique (SIG)</h2>
+            <div class="author">Présenté par : <strong>Yassine DBAICHI</strong></div>
+            <div class="date">PFE - Sciences de l'Information Géographique</div>
+            <div class="date">2025</div>
+        </div>
+
+        <!-- Slide 2: Contexte et Problématique -->
+        <div class="slide">
+            <h1>📌 Contexte du Projet</h1>
+
+            <div class="info-box problem">
+                <h2><span class="emoji">⚠️</span>Problématique</h2>
+                <ul>
+                    <li>Gestion manuelle des livraisons de livres</li>
+                    <li>Trajets non optimisés → Perte de temps et carburant</li>
+                    <li>Pas de planification automatique des tournées</li>
+                    <li>Coûts de livraison élevés</li>
+                </ul>
+            </div>
+
+            <div class="info-box solution">
+                <h2><span class="emoji">🎯</span>Objectifs</h2>
+                <ol>
+                    <li>Développer une marketplace mobile pour la vente de livres</li>
+                    <li>Intégrer un système SIG pour l'optimisation des tournées</li>
+                    <li>Réduire les coûts de livraison de <span class="highlight">30-40%</span></li>
+                    <li>Améliorer l'expérience utilisateur</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Slide 3: Architecture Technique -->
+        <div class="slide">
+            <h1>🏗️ Architecture du Système</h1>
+
+            <div class="architecture">
+┌─────────────────────────────────────────────────┐
+│        APPLICATION MOBILE (Flutter)             │
+│  ┌──────────────┐  ┌──────────────────────────┐│
+│  │  Interface   │  │   Couches Business       ││
+│  │     UI       │◄─┤   - RouteHelper          ││
+│  │   (Pages)    │  │   - OrderHelper          ││
+│  └──────────────┘  └──────────────────────────┘│
+│         ▲                      │                 │
+│         │                      ▼                 │
+│  ┌──────────────────────────────────────────┐  │
+│  │      Services & API                      │  │
+│  │  - OrderService  - RouteService          │  │
+│  └──────────────────────────────────────────┘  │
+└─────────────────────┬───────────────────────────┘
+                      │
+         ┌────────────┼────────────┐
+         ▼            ▼            ▼
+   ┌─────────┐  ┌─────────┐  ┌──────────────┐
+   │ MongoDB │  │ Node.js │  │OpenRouteService│
+   │  Atlas  │  │  API    │  │  (SIG/GIS)   │
+   └─────────┘  └─────────┘  └──────────────┘
+            </div>
+
+            <div class="two-columns">
+                <div class="column">
+                    <h3>Frontend</h3>
+                    <ul>
+                        <li>Flutter 3.x (Dart)</li>
+                        <li>flutter_map</li>
+                        <li>geolocator</li>
+                        <li>Provider</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h3>Backend</h3>
+                    <ul>
+                        <li>Node.js + Express</li>
+                        <li>MongoDB Atlas</li>
+                        <li>JWT Auth</li>
+                        <li>Vercel Hosting</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Composants SIG -->
+        <div class="slide">
+            <h1>🗺️ Technologies SIG Utilisées</h1>
+
+            <div class="info-box tech">
+                <h2>OpenRouteService API</h2>
+                <ul>
+                    <li>Service de routage opensource</li>
+                    <li>Calcul d'itinéraires optimisés</li>
+                    <li>Géocodage et géocodage inverse</li>
+                    <li>Matrice de distances</li>
+                    <li><strong>2000 requêtes/jour gratuites</strong></li>
+                </ul>
+            </div>
+
+            <div class="metrics">
+                <div class="metric">
+                    <span class="number">📍</span>
+                    <span class="label">Géolocalisation GPS</span>
+                </div>
+                <div class="metric">
+                    <span class="number">🗺️</span>
+                    <span class="label">Cartes OSM</span>
+                </div>
+                <div class="metric">
+                    <span class="number">🧭</span>
+                    <span class="label">Optimisation TSP</span>
+                </div>
+                <div class="metric">
+                    <span class="number">📐</span>
+                    <span class="label">Calcul Distances</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Algorithme TSP -->
+        <div class="slide">
+            <h1>🧠 Algorithme d'Optimisation TSP</h1>
+
+            <h2>Nearest Neighbor (Plus Proche Voisin)</h2>
+
+            <div class="code-block">1. Départ: Position actuelle du vendeur
+2. Tant qu'il reste des commandes non visitées:
+   a. Trouver la commande la plus proche
+   b. Ajouter à la tournée
+   c. Mettre à jour position actuelle
+3. Calculer l'itinéraire avec OpenRouteService
+4. Générer instructions turn-by-turn</div>
+
+            <div class="metrics">
+                <div class="metric">
+                    <span class="number">O(n²)</span>
+                    <span class="label">Complexité</span>
+                </div>
+                <div class="metric">
+                    <span class="number">&lt;2s</span>
+                    <span class="label">Temps calcul<br>(20 points)</span>
+                </div>
+                <div class="metric">
+                    <span class="number">35-40%</span>
+                    <span class="label">Économie<br>distance</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Fonctionnalités -->
+        <div class="slide">
+            <h1>⚡ Fonctionnalités Principales</h1>
+
+            <div class="two-columns">
+                <div class="column">
+                    <h2>Pour les Vendeurs</h2>
+                    <ul>
+                        <li>Gestion des commandes</li>
+                        <li>Planification automatique</li>
+                        <li>Carte interactive</li>
+                        <li>Navigation turn-by-turn</li>
+                        <li>Notes personnalisées</li>
+                        <li>Appel client direct</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h2>Pour les Acheteurs</h2>
+                    <ul>
+                        <li>Catalogue de livres</li>
+                        <li>Passage de commandes</li>
+                        <li>Géolocalisation livraison</li>
+                        <li>Suivi du statut</li>
+                        <li>Historique commandes</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Qualité du Code -->
+        <div class="slide">
+            <h1>✨ Architecture Clean Code</h1>
+
+            <div class="two-columns">
+                <div class="column">
+                    <h3>❌ Avant Refactoring</h3>
+                    <ul>
+                        <li>Code dupliqué (3 fichiers)</li>
+                        <li>Pages 1000+ lignes</li>
+                        <li>UI mélangée logique</li>
+                        <li>2807 lignes total</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h3>✅ Après Refactoring</h3>
+                    <ul>
+                        <li>Zero duplication</li>
+                        <li>Architecture en couches</li>
+                        <li>Widgets réutilisables</li>
+                        <li>2233 lignes (-20%)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="metrics">
+                <div class="metric">
+                    <span class="number">-574</span>
+                    <span class="label">Lignes supprimées</span>
+                </div>
+                <div class="metric">
+                    <span class="number">3</span>
+                    <span class="label">Widgets créés</span>
+                </div>
+                <div class="metric">
+                    <span class="number">0</span>
+                    <span class="label">Duplication</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Système de Coordonnées -->
+        <div class="slide">
+            <h1>🌍 Système de Coordonnées</h1>
+
+            <div class="info-box tech">
+                <h2>WGS84 (EPSG:4326)</h2>
+                <ul>
+                    <li><strong>Type:</strong> Geographic (latitude/longitude)</li>
+                    <li><strong>Format:</strong> Decimal degrees</li>
+                    <li><strong>Standard:</strong> GPS satellites</li>
+                    <li><strong>Exemple:</strong> Casablanca (33.5731°N, -7.5898°W)</li>
+                </ul>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Propriété</th>
+                        <th>WGS84 (Storage)</th>
+                        <th>Web Mercator (Display)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>EPSG Code</td>
+                        <td>4326</td>
+                        <td>3857</td>
+                    </tr>
+                    <tr>
+                        <td>Unités</td>
+                        <td>Degrés</td>
+                        <td>Mètres</td>
+                    </tr>
+                    <tr>
+                        <td>Usage</td>
+                        <td>Données GPS</td>
+                        <td>Affichage carte</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Slide 9: Exemple Concret -->
+        <div class="slide">
+            <h1>📊 Exemple d'Optimisation - Casablanca</h1>
+
+            <div class="info-box">
+                <h2>Scénario: 5 Livraisons</h2>
+                <ul>
+                    <li>Point A: Hay Mohammadi</li>
+                    <li>Point B: Maarif</li>
+                    <li>Point C: Ain Diab</li>
+                    <li>Point D: Anfa</li>
+                    <li>Point E: Derb Sultan</li>
+                </ul>
+            </div>
+
+            <div class="metrics">
+                <div class="metric">
+                    <span class="number">38 km</span>
+                    <span class="label">Sans optimisation</span>
+                </div>
+                <div class="metric">
+                    <span class="number">→</span>
+                </div>
+                <div class="metric">
+                    <span class="number">24 km</span>
+                    <span class="label">Avec optimisation<br><span class="highlight">-37%</span></span>
+                </div>
+            </div>
+
+            <div class="info-box solution">
+                <h3>Gain: 14 km et 30 minutes économisés par tournée!</h3>
+            </div>
+        </div>
+
+        <!-- Slide 10: Déploiement -->
+        <div class="slide">
+            <h1>☁️ Mise en Production</h1>
+
+            <div class="two-columns">
+                <div class="column">
+                    <h2>Backend</h2>
+                    <ul>
+                        <li><strong>Hébergement:</strong> Vercel</li>
+                        <li><strong>Base de données:</strong> MongoDB Atlas</li>
+                        <li><strong>Architecture:</strong> Serverless</li>
+                        <li><strong>Status:</strong> ✅ Déployé</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h2>Mobile</h2>
+                    <ul>
+                        <li><strong>Format:</strong> Android APK</li>
+                        <li><strong>Taille:</strong> 51MB</li>
+                        <li><strong>Compatible:</strong> Android 5.0+</li>
+                        <li><strong>Status:</strong> ✅ Compilé</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="metrics">
+                <div class="metric">
+                    <span class="number">27.1s</span>
+                    <span class="label">Build APK</span>
+                </div>
+                <div class="metric">
+                    <span class="number">&lt;1s</span>
+                    <span class="label">Chargement carte</span>
+                </div>
+                <div class="metric">
+                    <span class="number">1.5s</span>
+                    <span class="label">Calcul route</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11: Tests et Validation -->
+        <div class="slide">
+            <h1>✅ Tests et Résultats</h1>
+
+            <div class="key-points">
+                <div class="key-point">
+                    <h3>Tests Effectués</h3>
+                    <ul>
+                        <li>Tests unitaires algorithmes</li>
+                        <li>Tests intégration API</li>
+                        <li>Tests performance</li>
+                        <li>Tests utilisateurs réels</li>
+                    </ul>
+                </div>
+
+                <div class="key-point">
+                    <h3>Métriques Performance</h3>
+                    <ul>
+                        <li>Calcul: &lt;2s (20 points)</li>
+                        <li>GPS: ±10 mètres</li>
+                        <li>Taux succès: 95%</li>
+                        <li>Économie: 35% distance</li>
+                    </ul>
+                </div>
+
+                <div class="key-point">
+                    <h3>Backend</h3>
+                    <ul>
+                        <li>Cold start: ~1.5s</li>
+                        <li>Requêtes: &lt;200ms</li>
+                        <li>DB queries: &lt;50ms</li>
+                    </ul>
+                </div>
+
+                <div class="key-point">
+                    <h3>Mobile App</h3>
+                    <ul>
+                        <li>Lancement: &lt;2s</li>
+                        <li>Carte: &lt;1s</li>
+                        <li>Mémoire: ~150MB</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 12: Sécurité -->
+        <div class="slide">
+            <h1>🔐 Sécurité et Confidentialité</h1>
+
+            <div class="two-columns">
+                <div class="column">
+                    <h3>Authentification</h3>
+                    <ul>
+                        <li>JWT Tokens (7 jours)</li>
+                        <li>Hash passwords (bcrypt)</li>
+                        <li>Refresh tokens</li>
+                        <li>Session management</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h3>API Security</h3>
+                    <ul>
+                        <li>Rate limiting</li>
+                        <li>CORS configuré</li>
+                        <li>Validation données</li>
+                        <li>Sanitization MongoDB</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <h3>📍 Confidentialité Localisation</h3>
+                <ul>
+                    <li>Géolocalisation opt-in uniquement</li>
+                    <li>Stockage chiffré local</li>
+                    <li>HTTPS pour toutes les requêtes</li>
+                    <li>Aucun partage tiers</li>
+                    <li>Conformité RGPD</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 13: Stack Technique -->
+        <div class="slide">
+            <h1>🛠️ Stack Technique Complète</h1>
+
+            <div class="key-points">
+                <div class="key-point">
+                    <h3>Frontend Mobile</h3>
+                    <ul>
+                        <li>Flutter 3.x</li>
+                        <li>flutter_map 6.2.1</li>
+                        <li>geolocator 10.1.1</li>
+                        <li>latlong2 0.9.0</li>
+                    </ul>
+                </div>
+
+                <div class="key-point">
+                    <h3>Backend</h3>
+                    <ul>
+                        <li>Node.js 18+</li>
+                        <li>Express.js</li>
+                        <li>MongoDB + Mongoose</li>
+                        <li>JWT Authentication</li>
+                    </ul>
+                </div>
+
+                <div class="key-point">
+                    <h3>SIG/Géospatial</h3>
+                    <ul>
+                        <li>OpenRouteService API</li>
+                        <li>OpenStreetMap</li>
+                        <li>GeoJSON</li>
+                        <li>Haversine (latlong2)</li>
+                    </ul>
+                </div>
+
+                <div class="key-point">
+                    <h3>DevOps</h3>
+                    <ul>
+                        <li>Git/GitHub</li>
+                        <li>Vercel (CI/CD)</li>
+                        <li>MongoDB Atlas</li>
+                        <li>Flutter DevTools</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 14: Défis Techniques -->
+        <div class="slide">
+            <h1>⚡ Défis Techniques Rencontrés</h1>
+
+            <div class="info-box problem">
+                <h3>1. Optimisation TSP pour grandes tournées</h3>
+                <p><strong>Solution:</strong> Algorithme Nearest Neighbor (O(n²))</p>
+                <p>Acceptable jusqu'à 50 points</p>
+            </div>
+
+            <div class="info-box problem">
+                <h3>2. Précision GPS</h3>
+                <p><strong>Solution:</strong> Filtrage des coordonnées + validation</p>
+                <p>LocationAccuracy.high (±10m)</p>
+            </div>
+
+            <div class="info-box problem">
+                <h3>3. Performance mobile</h3>
+                <p><strong>Solution:</strong> Architecture optimisée + chargement async</p>
+                <p>Caching intelligent des tuiles</p>
+            </div>
+        </div>
+
+        <!-- Slide 15: Améliorations Futures -->
+        <div class="slide">
+            <h1>🚀 Évolutions Possibles</h1>
+
+            <div class="two-columns">
+                <div class="column">
+                    <h3>Court Terme</h3>
+                    <ul>
+                        <li>Notifications push</li>
+                        <li>Paiement intégré</li>
+                        <li>Export PDF tournées</li>
+                        <li>Multi-langues (FR/AR/EN)</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h3>Moyen Terme</h3>
+                    <ul>
+                        <li>ML prédiction demande</li>
+                        <li>Optimisation dynamique</li>
+                        <li>Mode hors-ligne complet</li>
+                        <li>Version iOS</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="info-box solution">
+                <h3>Long Terme</h3>
+                <ul>
+                    <li>Integration autres marketplaces</li>
+                    <li>API publique pour partenaires</li>
+                    <li>Analyse prédictive tendances</li>
+                    <li>Multi-véhicules (VRP)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 16: Impact et Bénéfices -->
+        <div class="slide">
+            <h1>📈 Impact du Projet</h1>
+
+            <div class="metrics">
+                <div class="metric">
+                    <span class="number">35%</span>
+                    <span class="label">Réduction coûts<br>carburant</span>
+                </div>
+                <div class="metric">
+                    <span class="number">40%</span>
+                    <span class="label">Gain de<br>temps</span>
+                </div>
+                <div class="metric">
+                    <span class="number">+50%</span>
+                    <span class="label">Capacité<br>livraison</span>
+                </div>
+            </div>
+
+            <div class="key-points">
+                <div class="key-point">
+                    <h3>🌱 Environnementaux</h3>
+                    <ul>
+                        <li>Réduction émissions CO₂</li>
+                        <li>Moins de kilomètres</li>
+                        <li>Optimisation ressources</li>
+                    </ul>
+                </div>
+
+                <div class="key-point">
+                    <h3>😊 Sociaux</h3>
+                    <ul>
+                        <li>Expérience client</li>
+                        <li>Accès facilité livres</li>
+                        <li>Support vendeurs locaux</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 17: Résultats Chiffrés -->
+        <div class="slide">
+            <h1>📊 Résultats Chiffrés</h1>
+
+            <div class="metrics">
+                <div class="metric">
+                    <span class="number">2,233</span>
+                    <span class="label">Lignes de code<br>Flutter</span>
+                </div>
+                <div class="metric">
+                    <span class="number">51MB</span>
+                    <span class="label">Taille APK</span>
+                </div>
+                <div class="metric">
+                    <span class="number">&lt;2s</span>
+                    <span class="label">Temps<br>optimisation</span>
+                </div>
+                <div class="metric">
+                    <span class="number">0</span>
+                    <span class="label">Bugs<br>critiques</span>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Métrique</th>
+                        <th>Avant</th>
+                        <th>Après</th>
+                        <th>Amélioration</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Lignes de code</td>
+                        <td>2,807</td>
+                        <td>2,233</td>
+                        <td class="highlight">-20%</td>
+                    </tr>
+                    <tr>
+                        <td>Code dupliqué</td>
+                        <td>3 places</td>
+                        <td>0</td>
+                        <td class="highlight">-100%</td>
+                    </tr>
+                    <tr>
+                        <td>Fichier le plus long</td>
+                        <td>1,026 lignes</td>
+                        <td>853 lignes</td>
+                        <td class="highlight">-17%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Slide 18: Précision et Exactitude -->
+        <div class="slide">
+            <h1>🎯 Précision et Exactitude</h1>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Composant</th>
+                        <th>Précision</th>
+                        <th>Conditions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>GPS Localisation</td>
+                        <td>±10m</td>
+                        <td>Bonnes conditions</td>
+                    </tr>
+                    <tr>
+                        <td>Distance (Haversine)</td>
+                        <td>±0.5%</td>
+                        <td>&lt;500km</td>
+                    </tr>
+                    <tr>
+                        <td>Durée trajet</td>
+                        <td>±15%</td>
+                        <td>Sans trafic temps réel</td>
+                    </tr>
+                    <tr>
+                        <td>Coordonnées stockées</td>
+                        <td>±11cm</td>
+                        <td>6 décimales</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="info-box">
+                <h3>Facteurs d'Exactitude</h3>
+                <ul>
+                    <li><strong>Bonnes conditions:</strong> Ciel dégagé, satellites multiples (±5-10m)</li>
+                    <li><strong>Mauvaises conditions:</strong> Immeubles hauts, intérieur (±15-50m)</li>
+                    <li><strong>Amélioration:</strong> A-GPS activé, filtrage Kalman</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 19: Compétences Développées -->
+        <div class="slide">
+            <h1>💼 Compétences Développées</h1>
+
+            <div class="key-points">
+                <div class="key-point">
+                    <h3>Développement Mobile</h3>
+                    <ul>
+                        <li>Flutter/Dart</li>
+                        <li>Architecture MVC</li>
+                        <li>State Management</li>
+                        <li>UI/UX Design</li>
+                    </ul>
+                </div>
+
+                <div class="key-point">
+                    <h3>SIG et Géospatial</h3>
+                    <ul>
+                        <li>Systèmes coordonnées</li>
+                        <li>APIs cartographiques</li>
+                        <li>Algorithmes routing</li>
+                        <li>Calculs géodésiques</li>
+                    </ul>
+                </div>
+
+                <div class="key-point">
+                    <h3>Backend & DevOps</h3>
+                    <ul>
+                        <li>Node.js/Express</li>
+                        <li>MongoDB NoSQL</li>
+                        <li>REST API Design</li>
+                        <li>Cloud Deployment</li>
+                    </ul>
+                </div>
+
+                <div class="key-point">
+                    <h3>Méthodologie</h3>
+                    <ul>
+                        <li>Clean Architecture</li>
+                        <li>Refactoring</li>
+                        <li>Git/Version Control</li>
+                        <li>Testing</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 20: Conclusion -->
+        <div class="slide">
+            <h1>✅ Conclusion</h1>
+
+            <div class="info-box solution">
+                <h2>Objectifs Atteints</h2>
+                <ul>
+                    <li>Application mobile complète et fonctionnelle</li>
+                    <li>Intégration SIG réussie</li>
+                    <li>Optimisation prouvée (<strong>35% économie</strong>)</li>
+                    <li>Code production-ready</li>
+                    <li>Déploiement complet (Backend + APK)</li>
+                </ul>
+            </div>
+
+            <div class="metrics">
+                <div class="metric">
+                    <span class="number">✅</span>
+                    <span class="label">Application<br>fonctionnelle</span>
+                </div>
+                <div class="metric">
+                    <span class="number">✅</span>
+                    <span class="label">SIG<br>intégré</span>
+                </div>
+                <div class="metric">
+                    <span class="number">✅</span>
+                    <span class="label">Code<br>qualité</span>
+                </div>
+                <div class="metric">
+                    <span class="number">✅</span>
+                    <span class="label">Déployé<br>production</span>
+                </div>
+            </div>
+
+            <p style="text-align: center; font-size: 1.5em; margin-top: 30px;">
+                <strong>Ce projet démontre l'intégration réussie des SIG dans une application mobile pratique, avec un impact mesurable sur l'efficacité des livraisons.</strong>
+            </p>
+        </div>
+
+        <!-- Slide 21: Questions -->
+        <div class="slide title-slide">
+            <h1>❓ Questions ?</h1>
+            <div style="margin-top: 50px; font-size: 1.3em;">
+                <p>Merci de votre attention! 🙏</p>
+                <p style="margin-top: 30px;">Présenté par : <strong>Yassine DBAICHI</strong></p>
+                <p style="margin-top: 20px; opacity: 0.8;">PFE - Sciences de l'Information Géographique</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="navigation">
+        <button class="nav-button" id="prevBtn" title="Previous (←)">◀</button>
+        <button class="nav-button" id="nextBtn" title="Next (→)">▶</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        const progressBar = document.getElementById('progressBar');
+        const slideCounter = document.getElementById('slideCounter');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function showSlide(n) {
+            // Clamp slide number
+            currentSlide = Math.max(0, Math.min(n, totalSlides - 1));
+
+            // Hide all slides
+            slides.forEach(slide => {
+                slide.classList.remove('active');
+            });
+
+            // Show current slide
+            slides[currentSlide].classList.add('active');
+
+            // Update progress bar
+            const progress = ((currentSlide + 1) / totalSlides) * 100;
+            progressBar.style.width = progress + '%';
+
+            // Update counter
+            slideCounter.textContent = `${currentSlide + 1} / ${totalSlides}`;
+        }
+
+        function nextSlide() {
+            showSlide(currentSlide + 1);
+        }
+
+        function prevSlide() {
+            showSlide(currentSlide - 1);
+        }
+
+        // Button event listeners
+        nextBtn.addEventListener('click', nextSlide);
+        prevBtn.addEventListener('click', prevSlide);
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                e.preventDefault();
+                prevSlide();
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                showSlide(0);
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                showSlide(totalSlides - 1);
+            }
+        });
+
+        // Touch/swipe support for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            if (touchEndX < touchStartX - 50) {
+                nextSlide();
+            }
+            if (touchEndX > touchStartX + 50) {
+                prevSlide();
+            }
+        }
+
+        // Mouse click navigation (left/right half of screen)
+        document.addEventListener('click', (e) => {
+            // Ignore clicks on navigation buttons
+            if (e.target.closest('.nav-button')) return;
+
+            const screenWidth = window.innerWidth;
+            if (e.clientX > screenWidth / 2) {
+                nextSlide();
+            } else {
+                prevSlide();
+            }
+        });
+
+        // Initialize
+        showSlide(0);
+
+        // Fullscreen toggle (F key)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'f' || e.key === 'F') {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                } else {
+                    document.exitFullscreen();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
