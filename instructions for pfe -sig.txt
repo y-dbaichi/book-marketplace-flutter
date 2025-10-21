@@ -1,0 +1,70 @@
+I understand what you need! Let me reformulate your request clearly:
+
+**Your Situation:**
+- You're a GIS student who did a DevOps internship at Oracle
+- Your school requires a side project related to GIS
+- You built this book marketplace with GIS integration with your binome (partner)
+- You want to create a **separate, standalone GIS project report** (not just an appendix)
+
+**What You Want:**
+1. A **simple, non-technical LaTeX report** for the GIS project
+2. Follow the structure pattern from your classmate's SAP report (the PDF you mentioned)
+3. Include standard sections like:
+   - Introduction
+   - Conception/Design
+   - Development
+   - Results
+   - Conclusion
+4. **Leave placeholders** for diagrams you'll create later (use case, class diagram, flowchart, technology stack, system architecture, etc.)
+5. Written in **English**
+6. Include a proper cover page (page de garde) and all standard report elements
+7. **Important:** Only describe what actually exists in your codebase - no fictional features
+
+**What You DON'T Want:**
+- Overly technical details
+- Completed diagrams (just placeholders for now)
+- An appendix-style document
+- Anything about features that don't exist
+
+**Next Steps:**
+Since the PDF is too large to read, could you either:
+1. Share a few screenshots of the structure/table of contents from your classmate's report, OR
+2. Describe the general section breakdown they used
+
+Then I'll create a clean LaTeX report template following that pattern for your GIS-integrated book marketplace project!
+
+here is pdf 
+I understand what you need! Let me reformulate your request clearly:
+
+**Your Situation:**
+- You're a GIS student who did a DevOps internship at Oracle
+- Your school requires a side project related to GIS
+- You built this book marketplace with GIS integration with your binome (partner)
+- You want to create a **separate, standalone GIS project report** (not just an appendix)
+
+**What You Want:**
+1. A **simple, non-technical LaTeX report** for the GIS project
+2. Follow the structure pattern from your classmate's SAP report (the PDF you mentioned)
+3. Include standard sections like:
+   - Introduction
+   - Conception/Design
+   - Development
+   - Results
+   - Conclusion
+4. **Leave placeholders** for diagrams you'll create later (use case, class diagram, flowchart, technology stack, system architecture, etc.)
+5. Written in **English**
+6. Include a proper cover page (page de garde) and all standard report elements
+7. **Important:** Only describe what actually exists in your codebase - no fictional features
+
+**What You DON'T Want:**
+- Overly technical details
+- Completed diagrams (just placeholders for now)
+- An appendix-style document
+- Anything about features that don't exist
+
+**Next Steps:**
+Since the PDF is too large to read, could you either:
+1. Share a few screenshots of the structure/table of contents from your classmate's report, OR
+2. Describe the general section breakdown they used
+
+Then I'll create a clean LaTeX report template following that pattern for your GIS-integrated book marketplace project!
